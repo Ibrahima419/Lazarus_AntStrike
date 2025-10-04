@@ -1,0 +1,12 @@
+from .base_presenter import BasePresenter
+
+
+class HTMLPresenter(BasePresenter):
+    type = "HTML_PRESENTER"
+    name = "HTML Presenter"
+    description = "Presenter for generating html documents"
+
+    def generate(self, product: dict, template: str, parameters: dict[str, str] | None = None) -> bytes | str:
+        if parameters is None:
+            parameters = {}
+        return super().generate(product, template, parameters)

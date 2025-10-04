@@ -1,0 +1,163 @@
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, relationship
+
+from typing import Any, TYPE_CHECKING
+from core.managers.db_manager import db
+from core.model.base_model import BaseModel
+from core.log import logger
+
+if TYPE_CHECKING:
+    from core.model.story import Story
+
+
+class NewsItemTag(BaseModel):
+    __tablename__ = "news_item_tag"
+
+    id: Mapped[int] = db.Column(db.Integer, primary_key=True)
+    name: Mapped[str] = db.Column(db.String(255))
+    tag_type: Mapped[str] = db.Column(db.String(255))
+    story_id: Mapped[str] = db.Column(db.ForeignKey("story.id", ondelete="CASCADE"))
+    story: Mapped["Story"] = relationship("Story", back_populates="tags")
+
+    def __init__(self, name: str, tag_type: str = "misc"):
+        if not isinstance(name, str):
+            raise TypeError(f"Tag name must be a string, got {type(name)}")
+        self.name = name
+        if not isinstance(tag_type, str):
+            raise TypeError(f"Tag type must be a string, got {type(tag_type)}")
+        self.tag_type = tag_type
+
+    @classmethod
+    def get_filtered_tags(cls, filter_args: dict) -> dict[str, str]:
+        query = db.select(cls.name, cls.tag_type)
+
+        if search := filter_args.get("search"):
+            query = query.filter(cls.name.ilike(f"%{search}%"))
+
+        if tag_type := filter_args.get("tag_type"):
+            query = query.filter(cls.tag_type == tag_type)
+
+        if min_size := filter_args.get("min_size"):
+            # returns only tags where the name appears at least min_size times in the database
+            query = query.group_by(cls.name, cls.tag_type).having(func.count(cls.name) >= min_size)
+            query = query.order_by(func.count(cls.name).desc())
+
+        offset = filter_args.get("offset", 0)
+        limit = filter_args.get("limit", 20)
+        query = query.offset(offset).limit(limit)
+        result = db.session.execute(query).tuples()
+        return {name: tag_type for name, tag_type in result}
+
+    @classmethod
+    def get_list(cls, filter_args: dict) -> list[str]:
+        tags = cls.get_filtered_tags(filter_args)
+        return list(tags.keys())
+
+    @classmethod
+    def remove_by_story(cls, story):
+        db.session.execute(db.delete(cls).where(cls.story_id == story.id))
+        db.session.commit()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"name": self.name, "tag_type": self.tag_type}
+
+    @classmethod
+    def find_by_name(cls, tag_name: str) -> "NewsItemTag | None":
+        return cls.get_first(db.select(cls).filter(cls.name.ilike(tag_name)))
+
+    @classmethod
+    def apply_sort(cls, query, sort_str: str):
+        if sort_str == "size_desc":
+            return query.order_by(func.count(cls.name).desc())
+        elif sort_str == "size_asc":
+            return query.order_by(func.count(cls.name).asc())
+        elif sort_str == "name_asc":
+            return query.order_by(cls.name.asc())
+        elif sort_str == "name_desc":
+            return query.order_by(cls.name.desc())
+
+        return query
+
+    @classmethod
+    def get_cluster_by_filter(cls, filter_args: dict):
+        query = db.select(cls).with_only_columns(cls.name, func.count(cls.name).label("size"))
+        if tag_type := filter_args.get("tag_type"):
+            query = query.filter(cls.tag_type == tag_type).group_by(cls.name)
+
+        count = cls.get_filtered_count(query)
+
+        if search := filter_args.get("search"):
+            query = query.filter(cls.name.ilike(f"%{search}%"))
+        if sort := filter_args.get("sort", "size_desc"):
+            query = cls.apply_sort(query, sort)
+
+        if offset := filter_args.get("offset"):
+            query = query.offset(offset)
+        if limit := filter_args.get("limit"):
+            query = query.limit(limit)
+
+        results = db.session.execute(query).all()
+        items = {row[0]: {"name": row[0], "size": row[1]} for row in results}
+
+        return {"total_count": count, "items": list(items.values())}
+
+    @classmethod
+    def parse_tags(cls, tags: list | dict) -> dict[str, "NewsItemTag"]:
+        if not tags:
+            logger.warning("No tags provided for parsing.")
+            return {}
+        if isinstance(tags, dict):
+            return cls._parse_dict_tags(tags)
+
+        return cls._parse_list_tags(tags)
+
+    @classmethod
+    def _parse_dict_tags(cls, tags: dict) -> dict[str, "NewsItemTag"]:
+        """Parse tags from dict format - handles both old and new formats:
+        - Old: {"APT75": "UNKNOWN"}
+        - New: {"APT75": {"name": "APT75", "tag_type": "UNKNOWN"}}
+        """
+        parsed_tags = {}
+        if not isinstance(tags, dict):
+            raise TypeError(f"Expected a dict for tags, got {type(tags).__name__}")
+        if not tags:
+            logger.warning("Entered tags might have been parsed out, likely due to a wrong format.")
+            raise ValueError("Tags cannot be empty or None.")
+
+        for tag_key, tag_data in tags.items():
+            if isinstance(tag_data, dict):
+                name = tag_data.get("name", tag_key)
+                tag_type = tag_data.get("tag_type", "misc")
+            elif isinstance(tag_data, str):
+                name = tag_key
+                tag_type = tag_data
+            else:
+                raise ValueError(f"Invalid tag format for key '{tag_key}': {type(tag_data).__name__} - must be str or dict")
+
+            parsed_tags[name] = NewsItemTag(name=name, tag_type=tag_type)
+
+        return parsed_tags
+
+    @classmethod
+    def _parse_list_tags(cls, tags: list) -> dict[str, "NewsItemTag"]:
+        dict_tags = {}
+        if not isinstance(tags, list):
+            raise TypeError(f"Expected a list for tags, got {type(tags).__name__}")
+        for tag in tags:
+            if isinstance(tag, dict) and "name" in tag:
+                dict_tags[tag["name"]] = tag
+            elif isinstance(tag, str):
+                dict_tags[tag] = {"name": tag, "tag_type": "misc"}
+        return cls._parse_dict_tags(dict_tags)
+
+    @classmethod
+    def unify_tags(cls, tags: list | dict) -> list[dict[str, str]]:
+        """Unify tags to a list of dicts with 'name' and 'tag_type' keys.
+        This serves for the __init__ function of NewsItemTag
+        """
+        if isinstance(tags, dict):
+            tags = cls._parse_dict_tags(tags)
+        elif isinstance(tags, list):
+            tags = cls._parse_list_tags(tags)
+
+        return [{"name": tag.name, "tag_type": tag.tag_type} for tag in tags.values()]

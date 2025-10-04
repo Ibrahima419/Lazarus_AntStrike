@@ -1,0 +1,49 @@
+{# djlint:off #}
+<div class="flex gap-8 items-center" x-data="{
+    include: {{ 'true' if 'COLLECTOR_INCLUDELIST' in word_list.usage else 'false' }},
+    exclude: {{ 'true' if 'COLLECTOR_EXCLUDELIST' in word_list.usage else 'false' }},
+    tagging: {{ 'true' if 'TAGGING_BOT' in word_list.usage else 'false' }},
+    updateState(key) {
+        if (this.exclude) {
+            // If exclude is checked, uncheck others
+            this.include = false;
+            this.tagging = false;
+        }
+        if (key === 'include' && this.include && this.exclude) {
+            this.exclude = false;
+        }
+        if (key === 'tagging' && this.tagging && this.exclude) {
+            this.exclude = false;
+        }
+        if (key === 'exclude' && this.exclude) {
+            this.include = false;
+            this.tagging = false;
+        }
+    }
+}">
+  <label class="cursor-pointer flex items-center gap-2">
+    <input type="checkbox" class="checkbox checkbox-primary" name="usage[]" value="COLLECTOR_INCLUDELIST"
+      x-model="include"
+      @change="updateState('include')"
+      :disabled="exclude"
+    >
+    Collector Includelist
+  </label>
+  <label class="cursor-pointer flex items-center gap-2">
+    <input type="checkbox" class="checkbox checkbox-error" name="usage[]" value="COLLECTOR_EXCLUDELIST"
+      x-model="exclude"
+      @change="updateState('exclude')"
+      :disabled="include || tagging"
+    >
+    Collector Excludelist
+  </label>
+  <label class="cursor-pointer flex items-center gap-2">
+    <input type="checkbox" class="checkbox checkbox-accent" name="usage[]" value="TAGGING_BOT"
+      x-model="tagging"
+      @change="updateState('tagging')"
+      :disabled="exclude"
+    >
+    Tagging Bot
+  </label>
+</div>
+{# djlint:on #}
