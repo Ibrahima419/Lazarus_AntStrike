@@ -4,34 +4,34 @@ Une plateforme complète de Cyber Threat Intelligence avec moteur Taranis AI pou
 
 ![AntStrike Logo](./AntStrike.svg)
 
-## 🚀 Fonctionnalités
+## 🚀 Fonctionnalités Actives
 
-- **Dashboard Exécutif** - Métriques business et ROI de la threat intelligence
-- **Gestion des Menaces** - Suivi avancé avec filtrage et corrélation
-- **Incidents** - Workflow de réponse avec SLA tracking
-- **Intelligence** - Intégration MISP/TAXII/STIX et gestion des IOCs
-- **Entités** - Acteurs de menaces, malware et infrastructure
-- **Analyse Avancée** - Corrélation automatique et scoring IA
-- **Taranis AI** - Moteur OSINT avec bots d'enrichissement
-- **Import/Export** - Intégration complète tous formats
-- **Reports** - Business intelligence avec justification ROI
-- **Settings** - Administration complète de la plateforme
+### **CTI Platform Dashboard**
+- **Overview** - Vue d'ensemble avec métriques temps réel et actions rapides
+- **Threat Map** - Visualisation géospatiale des menaces et campagnes
+- **Investigation** - Workflow d'investigation structuré avec corrélation
+- **Intelligence** - Gestion des IOCs, campagnes et analyse comportementale
+- **OSINT** - Collecte automatisée depuis 100+ sources avec monitoring
+- **Sources** - Gestion des sources personnalisées et groupes
+- **AI Bots** - Monitoring des bots Taranis et contrôle des performances
+- **Reports** - Générateur de rapports CTI avec templates personnalisés
+- **Advanced** - Fonctionnalités sophistiquées et diagnostics
 
 ## 🛠️ Technologies
 
 - **Frontend**: React 18 + TypeScript + Vite
 - **UI/UX**: Tailwind CSS 3.3 + Radix UI + shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **Backend**: Taranis AI (PostgreSQL + REST API)
 - **Graphiques**: Recharts
 - **Icons**: Lucide React
-- **Authentification**: Supabase Auth avec MFA
+- **Authentification**: Taranis Auth avec tokens JWT
 - **CTI Engine**: Taranis AI pour OSINT et enrichissement
 
 ## 📋 Prérequis
 
 - Node.js ≥ 18.0.0
 - npm ≥ 9.0.0
-- Supabase CLI (pour le développement local)
+- Taranis AI Server (pour le backend CTI)
 
 ## 🚀 Installation et Test Local
 
@@ -45,17 +45,14 @@ npm install
 cp .env.example .env
 \`\`\`
 
-### 2. Configuration Supabase (Optionnel pour test)
+### 2. Configuration Taranis AI (Optionnel pour test)
 
 \`\`\`bash
-# Installer Supabase CLI
-npm install -g supabase
-
-# Démarrer Supabase local
-npm run supabase:start
+# Démarrer Taranis AI local (via Docker)
+docker-compose up -d
 
 # Vérifier le statut
-npm run supabase:status
+curl http://localhost:3000/isalive
 \`\`\`
 
 ### 3. Configuration des variables d'environnement
@@ -67,9 +64,9 @@ npm run supabase:status
 VITE_ENABLE_MOCK_DATA=true
 VITE_ENABLE_DEBUG=true
 
-# Pour intégration Supabase réelle
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Pour intégration Taranis AI réelle
+VITE_TARANIS_API_URL=http://localhost:3000
+VITE_TARANIS_API_KEY=your_taranis_api_key
 \`\`\`
 
 ### 4. Lancer en développement
@@ -123,15 +120,15 @@ EXPOSE 3000
 CMD ["npm", "run", "preview"]
 \`\`\`
 
-### Option 4: Supabase Edge Functions
+### Option 4: Docker avec Taranis AI
 
 \`\`\`bash
-# Déployer les fonctions Supabase
-npm run deploy
+# Build de l'image Docker
+docker build -t antstrike-cti .
 
-# Ou manuellement
-supabase functions deploy make-server-ef314a4f
-\`\`\}
+# Lancer avec Taranis AI
+docker-compose up -d
+\`\`\`
 
 ## 🔧 Configuration Avancée
 
@@ -143,9 +140,9 @@ VITE_APP_NAME="AntStrike CTI Platform"
 VITE_APP_ENVIRONMENT="production"
 VITE_ENABLE_MOCK_DATA=false
 
-# Supabase
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
+# Taranis AI
+VITE_TARANIS_API_URL=https://your-taranis-server.com
+VITE_TARANIS_API_KEY=your_taranis_api_key
 
 # Services externes (optionnel)
 VITE_MISP_API_KEY=your_misp_key
@@ -171,7 +168,7 @@ server {
     }
 
     location /api/ {
-        proxy_pass https://your-project.supabase.co/functions/v1/;
+        proxy_pass http://your-taranis-server:3000/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
@@ -208,7 +205,7 @@ server {
 - **HTTPS Strict Transport Security** (HSTS)
 - **X-Frame-Options**: DENY
 - **X-Content-Type-Options**: nosniff
-- **Authentification MFA** via Supabase
+- **Authentification JWT** via Taranis AI
 - **Session Management** sécurisé
 - **Rate Limiting** sur les APIs
 
@@ -232,7 +229,7 @@ server {
 
 - **Sentry** pour error tracking
 - **Vercel Analytics** pour performance
-- **Supabase Metrics** pour backend
+- **Taranis AI Metrics** pour backend
 - **Custom Dashboards** pour métier
 
 ## 🧪 Tests et Qualité
@@ -304,7 +301,7 @@ AntStrike CTI intègre le moteur **Taranis AI** pour la collecte OSINT automatis
 | Type       | Service   | Description                           |
 | :--------- | :-------- | :------------------------------------ |
 | Frontend   | React     | Interface utilisateur moderne avec TypeScript |
-| Backend    | Supabase  | API REST et base de données PostgreSQL |
+| Backend    | Taranis AI| API REST et base de données PostgreSQL |
 | Worker     | Taranis   | Collecteurs, bots et présentateurs IA |
 | Database   | PostgreSQL| Base de données principale avec support SQLite |
 
