@@ -55,21 +55,10 @@ export function IOCsManager() {
   }, []);
 
   const initializeIOCExtractorBot = async () => {
-    try {
-      // Initialiser le bot IOC Extractor en arrière-plan
-      const { getIOCExtractorBot } = await import('./services/ioc-extractor-bot');
-      const iocBot = getIOCExtractorBot();
-      
-      // Créer le bot s'il n'existe pas déjà
-      if (!iocBot.getBotId()) {
-        console.log('🤖 Création du bot IOC Extractor...');
-        await iocBot.createBot();
-        console.log('✅ Bot IOC Extractor créé et configuré');
-      }
-    } catch (error) {
-      console.error('⚠️ Erreur lors de l\'initialisation du bot IOC Extractor:', error);
-      // Ne pas bloquer l'interface si le bot ne peut pas être créé
-    }
+    // NOTE: La création dynamique de bots n'est pas supportée par l'API Taranis
+    // Les bots doivent être configurés côté serveur Taranis dans /api/config/bots
+    // Cette fonction est désactivée pour éviter les erreurs HTTP 500
+    console.log('ℹ️ IOC Extractor: Utiliser les bots configurés côté serveur Taranis');
   };
 
   const triggerIOCExtraction = async () => {
@@ -103,14 +92,14 @@ export function IOCsManager() {
     setError(null);
     
     try {
-      // Utiliser le service d'extraction d'IOCs avancé
-      const { getIOCExtractorService } = await import('./services/ioc-extractor-service');
-      const iocExtractor = getIOCExtractorService();
+      // ✅ NOUVEAU: Utiliser le mapper Taranis natif (attributs API directement)
+      const { getTaranisIOCMapperService } = await import('./services/taranis-ioc-mapper');
+      const iocMapper = getTaranisIOCMapperService();
       
-      console.log('🔍 Extraction d\'IOCs depuis les news items Taranis...');
+      console.log('🔍 Extraction d\'IOCs depuis attributs Taranis natifs...');
       
-      // Extraire les IOCs avec le service avancé
-      const extractionResult = await iocExtractor.extractIOCsFromNewsItems(200, '7d');
+      // Extraire les IOCs avec la méthode NATIVE (pas de regex, attributs Taranis)
+      const extractionResult = await iocMapper.extractIOCsFromNewsItems(500, '7d');
       
       if (extractionResult.iocs.length === 0) {
         console.log('⚠️ Aucun IOC trouvé dans les news items récents');
@@ -118,7 +107,7 @@ export function IOCsManager() {
         return;
       }
 
-      console.log(`✅ ${extractionResult.totalExtracted} IOCs extraits avec succès`);
+      console.log(`✅ ${extractionResult.totalExtracted} IOCs extraits avec succès (Méthode: ${extractionResult.extractionMethod})`);
       console.log(`📊 Répartition: ${extractionResult.byType.ip} IPs, ${extractionResult.byType.domain} domains, ${extractionResult.byType.hash} hashes, ${extractionResult.byType.url} URLs, ${extractionResult.byType.email} emails`);
       
       // Convertir vers le format attendu par le composant

@@ -1,0 +1,506 @@
+{
+  "timestamp": "2025-10-15T16:50:33.113Z",
+  "api_version": "3.0.0",
+  "results": {
+    "total": 61,
+    "passed": 2,
+    "failed": 59,
+    "skipped": 0,
+    "details": [
+      {
+        "method": "GET",
+        "path": "/",
+        "description": "Page d'accueil API",
+        "status": "PASSED",
+        "statusCode": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "description": "Health check",
+        "status": "PASSED",
+        "statusCode": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/register",
+        "description": "Register new user",
+        "status": "FAILED",
+        "statusCode": 400,
+        "message": "Request failed with status code 400"
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "description": "Login existing user",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me",
+        "description": "Get current user",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "description": "Logout",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/tenants",
+        "description": "List tenants",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/threats?limit=10",
+        "description": "List threats",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/threats/search?q=malware",
+        "description": "Search threats",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/alerts",
+        "description": "List alerts",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/reports",
+        "description": "List reports",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "POST",
+        "path": "/api/reports/generate",
+        "description": "Generate report",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/cases/stats",
+        "description": "Get case stats",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/cases",
+        "description": "List cases",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "POST",
+        "path": "/api/cases",
+        "description": "Create case",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/ioc",
+        "description": "List enriched IOCs",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "POST",
+        "path": "/api/ioc/enrich",
+        "description": "Enrich IOC",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "POST",
+        "path": "/api/ioc/extract",
+        "description": "Extract IOCs from text",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/playbooks",
+        "description": "List playbooks",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "POST",
+        "path": "/api/playbooks",
+        "description": "Create playbook",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/correlation/stats",
+        "description": "Get correlation stats",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/correlation/campaigns",
+        "description": "Analyze campaigns",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/metrics/team",
+        "description": "Get team metrics",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/metrics/compare",
+        "description": "Compare analysts",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/stories?limit=5",
+        "description": "Get stories",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/stories/clusters",
+        "description": "Get story clusters",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/news-items?limit=5",
+        "description": "Get news items",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/attributes?limit=10",
+        "description": "Get all attributes",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/attributes?type=IOC&limit=5",
+        "description": "Get IOCs",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/attributes?type=CVE&limit=5",
+        "description": "Get CVEs",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/attributes?type=MITRE_ATTACK&limit=5",
+        "description": "Get MITRE techniques",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/attributes/types",
+        "description": "Get attribute types",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/attributes/search?q=malware",
+        "description": "Search attributes",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/bots",
+        "description": "List all bots",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/bots/presets",
+        "description": "Get bot presets",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/bots",
+        "description": "Get bots for testing",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/dashboard/trending-clusters",
+        "description": "Get trending clusters",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/dashboard/statistics",
+        "description": "Get dashboard statistics",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/dashboard/activity?limit=10",
+        "description": "Get dashboard activity",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/analytics/threats-over-time?period=7d",
+        "description": "Threats over time",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/analytics/sources-performance",
+        "description": "Sources performance",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/analytics/top-tags?limit=10",
+        "description": "Top tags",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/analytics/top-sources?limit=10",
+        "description": "Top sources",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/word-lists",
+        "description": "List word lists",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/word-lists",
+        "description": "Get word lists for testing",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/osint-sources",
+        "description": "List OSINT sources",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/product-types",
+        "description": "List product types",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/tags",
+        "description": "List tags",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/osint-sources",
+        "description": "Get sources for testing",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/products",
+        "description": "List products",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/report-items?limit=10",
+        "description": "List report items",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/users",
+        "description": "List users",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/organizations",
+        "description": "List organizations",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/assets",
+        "description": "List assets",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/notifications",
+        "description": "List notifications",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/collectors",
+        "description": "List collectors",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/collectors",
+        "description": "Get collectors for testing",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/presenters",
+        "description": "List presenters",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/system/info",
+        "description": "Get system info",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/system/health",
+        "description": "Get system health",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      },
+      {
+        "method": "GET",
+        "path": "/api/taranis/system/version",
+        "description": "Get system version",
+        "status": "FAILED",
+        "statusCode": 401,
+        "message": "Request failed with status code 401"
+      }
+    ]
+  },
+  "summary": {
+    "total": 61,
+    "passed": 2,
+    "failed": 59,
+    "skipped": 0,
+    "successRate": "3.3%",
+    "implementedRate": "3.3%"
+  }
+}

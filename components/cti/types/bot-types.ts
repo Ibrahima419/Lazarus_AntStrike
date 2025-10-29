@@ -118,6 +118,12 @@ export interface BotParameters {
 }
 
 export interface BotMetrics {
+  // Propriétés de niveau supérieur pour compatibilité
+  totalProcessed?: number;
+  successRate?: number;
+  throughput?: number;
+  availability?: number;
+  
   // Performance
   performance: {
     totalRuns: number;
@@ -160,6 +166,7 @@ export interface BotHistoryEntry {
   id: string;
   timestamp: Date;
   status: 'success' | 'error' | 'warning' | 'info';
+  action?: string;
   message: string;
   duration: number;
   itemsProcessed: number;

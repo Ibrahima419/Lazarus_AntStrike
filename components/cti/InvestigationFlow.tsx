@@ -32,7 +32,7 @@ interface Investigation {
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
-  status: 'open' | 'in-progress' | 'completed' | 'closed';
+  status: 'open' | 'in-progress' | 'completed' | 'closed' | 'cancelled';
   assignee: string;
   createdDate: Date;
   updatedDate: Date;
@@ -147,13 +147,13 @@ export function InvestigationFlow() {
       // Récupérer les vraies données depuis Taranis
       const [stories, newsItems, bots] = await Promise.all([
         service.getStories(),
-        service.getNewsItems(100),
+        service.getNewsItems({ limit: 100, cybersecurity: true }),
         service.getBots()
       ]);
 
       // Générer une investigation basée sur les stories importantes
       if (stories && stories.length > 0) {
-        const importantStories = stories.filter(story => story.important);
+        const importantStories = stories.filter(story => story.important === true);
         if (importantStories.length > 0) {
           const investigation = await generateInvestigationFromStory(importantStories[0]);
           if (investigation) {

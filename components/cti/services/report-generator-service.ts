@@ -310,7 +310,7 @@ export async function generateCTIReport(
   try {
     // Charger toutes les données nécessaires
     const [newsItems, stories, threats, reports] = await Promise.all([
-      service.getNewsItems(200),
+      service.getNewsItems({ limit: 200, cybersecurity: true }),
       service.getStories(),
       loadGeolocatedThreats(200),
       service.getReports()

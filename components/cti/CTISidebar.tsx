@@ -293,7 +293,7 @@ export function CTISidebar({
                 {/* Sous-modules */}
                 {hasSubModules && isExpanded && (
                   <div className="ml-6 mt-2 space-y-1">
-                    {module.subModules.map((subModule) => {
+                    {module.subModules?.map((subModule) => {
                       const SubIcon = subModule.icon;
                       const isSubActive = activeSubModule === subModule.id;
 

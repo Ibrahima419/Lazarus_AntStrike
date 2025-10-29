@@ -12,9 +12,11 @@ interface SourceNode {
   id: string;
   name: string;
   type: string;
+  enabled?: boolean;
   alertCount: number;
   trustScore: number;
   status: 'active' | 'inactive' | 'error';
+  lastCollected?: Date;
 }
 
 interface SourceCluster {
@@ -22,7 +24,8 @@ interface SourceCluster {
   name: string;
   type: string;
   sources: SourceNode[];
-  alertCount: number;
+  alertCount?: number;
+  confidence?: number;
 }
 
 interface NetworkGraphViewProps {

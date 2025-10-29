@@ -126,17 +126,30 @@ export class CorrelationEngineService {
    */
   private async createCorrelationBot(rule: CorrelationRule): Promise<string | null> {
     try {
-      const botData = {
+      const botData: any = {
         name: `Correlation Bot: ${rule.name}`,
         description: `Bot de corrélation pour la règle: ${rule.description}`,
         type: 'correlator',
         config: {
           enabled: rule.status === 'active',
+          schedule: '*/15 * * * *',
+          timeout: 300,
+          retryAttempts: 3,
+          retryDelay: 60,
+          resources: {
+            cpuLimit: 50,
+            memoryLimit: 512,
+            diskSpace: 1024
+          },
           parameters: {
             ruleId: rule.id,
             ruleType: rule.type,
             confidenceThreshold: rule.confidence,
             ...rule.parameters
+          },
+          triggers: {
+            timeBased: true,
+            eventBased: false
           }
         }
       };
@@ -275,7 +288,20 @@ export class CorrelationEngineService {
         await this.botService.updateBot(botId, {
           config: {
             enabled: updates.status === 'active',
-            parameters: rules[ruleIndex].parameters
+            schedule: '*/15 * * * *',
+            timeout: 300,
+            retryAttempts: 3,
+            retryDelay: 60,
+            resources: {
+              cpuLimit: 50,
+              memoryLimit: 512,
+              diskSpace: 1024
+            },
+            parameters: rules[ruleIndex].parameters,
+            triggers: {
+              timeBased: true,
+              eventBased: false
+            }
           }
         });
       }
@@ -383,7 +409,7 @@ export class CorrelationEngineService {
 
     try {
       // Récupérer les news items
-      const newsItems = await this.taranisService.getNewsItems(200);
+      const newsItems = await this.taranisService.getNewsItems({ limit: 200, cybersecurity: true });
       
       // Extraire les IOCs
       const iocExtraction = await this.iocExtractorService.extractIOCsFromNewsItems(200, '30d');
@@ -496,7 +522,7 @@ export class CorrelationEngineService {
 
     try {
       // Récupérer les news items avec géolocalisation
-      const newsItems = await this.taranisService.getNewsItems(200);
+      const newsItems = await this.taranisService.getNewsItems({ limit: 200, cybersecurity: true });
       
       // Grouper par pays/région
       const geoGroups = new Map<string, any[]>();
@@ -921,10 +947,14 @@ export class CorrelationEngineService {
       for (const [type, typeResults] of resultsByType) {
         const reportItem = {
           title: `Correlation Analysis: ${type}`,
-          description: `Automated correlation analysis results for ${typeResults.length} correlations`,
           report_item_type_id: this.config.reportItemTypeId,
           completed: false,
           attributes: [
+            {
+              key: 'description',
+              value: `Automated correlation analysis results for ${typeResults.length} correlations`,
+              type: 'TEXT'
+            },
             {
               key: 'correlation_type',
               value: type,

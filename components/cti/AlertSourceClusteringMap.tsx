@@ -75,7 +75,7 @@ export function AlertSourceClusteringMap() {
       const [osintSources, osintSourceGroups, newsItems] = await Promise.all([
         service.getOSINTSources(),
         service.getOSINTSourceGroups(),
-        service.getNewsItems(100)
+        service.getNewsItems({ limit: 100, cybersecurity: true })
       ]);
 
       // Transformer en SourceNodes avec géolocalisation asynchrone

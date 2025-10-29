@@ -1,11 +1,25 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from '../App.tsx'
+import { AppRoutes } from './AppRoutes'
 import '../styles/globals.css'
-import 'leaflet/dist/leaflet.css'
+import '../styles/scrollbar.css'
+import { QueryProvider } from './providers/query-provider'
+import { AuthProvider } from './providers/auth-provider'
+import { Toaster } from 'sonner'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <QueryProvider>
+      <AuthProvider>
+        <AppRoutes />
+        <Toaster 
+          position="top-right" 
+          theme="dark"
+          richColors
+          expand={false}
+          closeButton
+        />
+      </AuthProvider>
+    </QueryProvider>
   </React.StrictMode>,
 )

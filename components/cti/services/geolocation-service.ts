@@ -18,7 +18,7 @@ export interface GeoLocation {
   isp?: string;
   organization?: string;
   accuracy?: number;
-  source: 'maxmind' | 'ipapi' | 'ipgeolocation' | 'fallback';
+  source: 'maxmind' | 'ipapi' | 'ipgeolocation' | 'fallback' | 'real-api';
 }
 
 export interface GeoEnrichmentResult {
@@ -247,27 +247,10 @@ export class GeoLocationService {
    */
   private async enrichWithMaxMind(ip: string): Promise<GeoLocation | null> {
     try {
-      // Simulation - en production, utiliser la vraie API MaxMind
-      const mockData = this.getMockMaxMindData(ip);
-      
-      if (mockData) {
-        return {
-          country: mockData.country,
-          countryCode: mockData.countryCode,
-          region: mockData.region,
-          regionCode: mockData.regionCode,
-          city: mockData.city,
-          latitude: mockData.latitude,
-          longitude: mockData.longitude,
-          timezone: mockData.timezone,
-          isp: mockData.isp,
-          organization: mockData.organization,
-          accuracy: 0.95,
-          source: 'maxmind'
-        };
-      }
-      
-      return null;
+      // TODO: Intégrer la vraie API MaxMind GeoIP2
+      // Pour l'instant, utiliser les APIs alternatives
+      console.warn('⚠️ MaxMind non configuré, utilisation des APIs alternatives');
+      return await this.enrichWithRealAPIs(ip);
     } catch (error) {
       throw new Error(`MaxMind enrichment failed: ${error}`);
     }
@@ -307,9 +290,14 @@ export class GeoLocationService {
    */
   private async enrichWithIPAPI(ip: string): Promise<GeoLocation | null> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+      
       const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,timezone,isp,org`, {
-        timeout: this.config.timeout
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -345,9 +333,14 @@ export class GeoLocationService {
    */
   private async enrichWithIPGeolocation(ip: string): Promise<GeoLocation | null> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+      
       const response = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${this.config.ipgeolocationKey}&ip=${ip}`, {
-        timeout: this.config.timeout
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -441,12 +434,17 @@ export class GeoLocationService {
    */
   private async fetchFromIpapi(ip: string): Promise<any> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(`https://ipapi.co/${ip}/json/`, {
-        timeout: 5000,
+        signal: controller.signal,
         headers: {
           'User-Agent': 'AntStrike-CTI/1.0'
         }
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();
@@ -475,12 +473,17 @@ export class GeoLocationService {
    */
   private async fetchFromIpApi(ip: string): Promise<any> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(`http://ip-api.com/json/${ip}`, {
-        timeout: 5000,
+        signal: controller.signal,
         headers: {
           'User-Agent': 'AntStrike-CTI/1.0'
         }
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();

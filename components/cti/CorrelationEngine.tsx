@@ -92,13 +92,14 @@ export function CorrelationEngine() {
       
       console.log('🔗 Déclenchement manuel de l\'analyse de corrélation...');
       
-      const { getCorrelationEngineService } = await import('./services/correlation-engine-service');
-      const correlationEngine = getCorrelationEngineService();
+      const { getTaranisCorrelationMapperService } = await import('./services/taranis-correlation-mapper');
+      const correlationMapper = getTaranisCorrelationMapperService();
       
-      // Exécuter l'analyse
-      const results = await correlationEngine.runCorrelationAnalysis();
+      // Invalider le cache et ré-extraire
+      correlationMapper.invalidateCache();
+      const extraction = await correlationMapper.extractCorrelationsFromTaranis();
       
-      console.log(`✅ Analyse terminée: ${results.length} corrélations détectées`);
+      console.log(`✅ Analyse terminée: ${extraction.totalCorrelations} corrélations détectées`);
       
       // Recharger les données
       await loadCorrelationData();

@@ -83,7 +83,7 @@ export function OSINTCollector() {
       const [sourcesData, groupsData, newsData] = await Promise.all([
         service.getOSINTSources(),
         service.getOSINTSourceGroups(),
-        service.getNewsItems(200)
+        service.getNewsItems({ limit: 200, cybersecurity: true })
       ]);
 
       setSources(sourcesData);

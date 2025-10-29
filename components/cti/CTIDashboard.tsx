@@ -81,6 +81,10 @@ export function CTIDashboard() {
       setIsConnected(connected);
 
       if (connected) {
+        // ✅ NOUVEAU: Utiliser le mapper dashboard Taranis natif
+        const { getTaranisDashboardMapperService } = await import('./services/taranis-dashboard-mapper');
+        const dashboardMapper = getTaranisDashboardMapperService();
+
         // Charger toutes les données CTI en parallèle
         const [
           bots,
@@ -88,14 +92,14 @@ export function CTIDashboard() {
           newsItems,
           reports,
           stories,
-          dashboardData
+          dashboardStats
         ] = await Promise.all([
           service.getBots(),
           service.getSources(),
-          service.getNewsItems(100),
+          service.getNewsItems({ limit: 100 }),
           service.getReports(),
           service.getStories(),
-          service.getDashboardStats()
+          dashboardMapper.extractDashboardStats() // ✅ Stats depuis /api/dashboard
         ]);
 
         // Calculer les stats CTI basées sur les vraies données
@@ -110,53 +114,56 @@ export function CTIDashboard() {
     }
   };
 
-  // ============ CALCUL DES VRAIES STATISTIQUES CTI ============
+  // ============ CALCUL DES VRAIES STATISTIQUES CTI (OBSOLÈTE - Utilise dashboardStats maintenant) ============
   
   const calculateRealCTIStats = async (
-    newsItems: any[], 
-    stories: any[], 
+    newsItems: any, 
+    stories: any, 
     bots: any[], 
     sources: any[], 
     reports: any[]
   ): Promise<CTIStats> => {
     try {
-      // Calculer les statistiques basées sur les vraies données
-      const totalThreats = newsItems.length;
+      // ⚠️ OBSOLÈTE: Ces calculs sont maintenant faits par taranis-dashboard-mapper
+      // Gardé uniquement pour fallback et bots/sources qui ne sont pas dans /api/dashboard
       
-      // Calculer les campagnes actives basées sur les stories récentes
-      const activeCampaigns = stories.filter(story => {
+      const totalThreats = newsItems?.total_count || 0;
+      const storiesCreated = stories?.total_count || 0;
+      
+      // Calculer les campagnes actives basées sur les stories récentes (fallback)
+      const activeCampaigns = stories?.items?.filter((story: any) => {
         const storyDate = new Date(story.created || story.last_change);
         const daysSinceCreation = (Date.now() - storyDate.getTime()) / (1000 * 60 * 60 * 24);
-        return daysSinceCreation <= 30; // Stories créées dans les 30 derniers jours
-      }).length;
+        return daysSinceCreation <= 30;
+      }).length || 0;
 
-      // Calculer les IOCs collectés depuis les attributs des news items
-      const iocsCollected = newsItems.reduce((acc, item) => {
+      // IOCs depuis attributs (fallback)
+      const iocsCollected = newsItems?.items?.reduce((acc: number, item: any) => {
         if (item.attributes) {
           return acc + item.attributes.filter((attr: any) => 
-            attr.key === 'ip' || attr.key === 'domain' || attr.key === 'url' || attr.key === 'hash'
+            ['ip', 'domain', 'url', 'hash', 'email'].includes(attr.key)
           ).length;
         }
         return acc;
-      }, 0);
-
-      const storiesCreated = stories.length;
+      }, 0) || 0;
       
-      // Calculer les bots actifs
+      // Bots actifs (non disponible dans /api/dashboard)
       const botsActive = bots.filter(bot => 
-        bot.status === 'active' || bot.status === 'running'
+        bot.is_enabled === true
       ).length;
 
-      // Calculer les sources surveillées
-      const sourcesMonitored = sources.filter(source => source.enabled).length;
-
-      // Calculer les alertes critiques
-      const criticalAlerts = reports.filter(report => 
-        report.threatLevel === 'critical' || report.severity === 'critical'
+      // Sources surveillées (non disponible dans /api/dashboard)
+      const sourcesMonitored = sources.filter(source => 
+        source.state === 'COLLECTING'
       ).length;
 
-      // Calculer le temps de réponse moyen basé sur les métriques des bots
-      const avgResponseTime = await calculateAverageResponseTime(bots, newsItems);
+      // Alertes critiques
+      const criticalAlerts = newsItems?.items?.filter((item: any) => 
+        item.relevance === 'HIGH'
+      ).length || 0;
+
+      // Temps de réponse moyen
+      const avgResponseTime = await calculateAverageResponseTime(bots, newsItems?.items || []);
 
       return {
         totalThreats,

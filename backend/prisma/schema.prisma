@@ -1,0 +1,1019 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Tenant {
+  id              String    @id @default(uuid())
+  name            String
+  domain          String    @unique
+  apiKey          String    @unique
+  plan            String    @default("free")
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  users           User[]
+  threats         Threat[]
+  alerts          Alert[]
+  cases           Case[]
+  rules           Rule[]
+  feeds           Feed[]
+  integrations    Integration[]
+  workflows       Workflow[]
+  reports         Report[]
+  configurations  TenantConfiguration[]
+  stixBundles     STIXBundle[]
+  taxiiCollections TAXIICollection[]
+  mispEvents      MISPEvent[]
+  cveVulnerabilities CVEVulnerability[]
+  osintFeeds      OSINTFeed[]
+  darkWebItems    DarkWebItem[]
+  honeypotLogs    HoneypotLog[]
+  iocHistory      IOCHistory[]
+  ttps            TTP[]
+  campaigns       Campaign[]
+  threatActors    ThreatActor[]
+  playbooks       Playbook[]
+  playbookExecutions PlaybookExecution[]
+  
+  @@map("tenants")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  tenantId    String
+  email       String   @unique
+  password    String
+  name        String
+  role        String   @default("analyst")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+// ============================================
+// THREAT INTELLIGENCE
+// ============================================
+
+model Threat {
+  id              String    @id @default(uuid())
+  tenantId        String
+  name            String
+  type            String
+  severity        String    @default("medium")
+  confidence      Int       @default(50)
+  status          String    @default("new")
+  description     String?   @db.Text
+  iocs            Json      @default("[]")
+  mitreTactics    Json      @default("[]")
+  tags            Json      @default("[]")
+  source          String?
+  firstSeen       DateTime  @default(now())
+  lastSeen        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  alerts          Alert[]
+  cases           CaseToThreat[]
+  correlations    ThreatCorrelation[] @relation("SourceThreat")
+  relatedThreats  ThreatCorrelation[] @relation("RelatedThreat")
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([severity])
+  @@index([status])
+  @@map("threats")
+}
+
+model ThreatCorrelation {
+  id                String   @id @default(uuid())
+  tenantId          String
+  threatId          String
+  relatedThreatId   String
+  confidenceScore   Int      @default(0)
+  commonIndicators  Json     @default("[]")
+  createdAt         DateTime @default(now())
+
+  threat            Threat   @relation("SourceThreat", fields: [threatId], references: [id], onDelete: Cascade)
+  relatedThreat     Threat   @relation("RelatedThreat", fields: [relatedThreatId], references: [id], onDelete: Cascade)
+
+  @@index([threatId])
+  @@index([relatedThreatId])
+  @@map("threat_correlations")
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  tenantId    String
+  threatId    String?
+  title       String
+  description String?  @db.Text
+  severity    String   @default("low")
+  status      String   @default("open")
+  source      String?
+  raw         Json?
+  
+  // Advanced Alert Management
+  priority          String?   @default("P3")
+  category          String?
+  tags              Json      @default("[]")
+  assignee          String?
+  assignedAt        DateTime?
+  acknowledgedAt    DateTime?
+  resolvedAt        DateTime?
+  closedAt          DateTime?
+  
+  // SLA
+  slaResponseTime   Int?
+  slaResolutionTime Int?
+  slaViolated       Boolean   @default(false)
+  
+  // Metadata
+  fingerprint       String?
+  parentAlertId     String?
+  correlatedAlerts  Json      @default("[]")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  threat      Threat?  @relation(fields: [threatId], references: [id], onDelete: SetNull)
+  cases       CaseToAlert[]
+  notes       AlertNote[]
+  history     AlertHistory[]
+
+  @@index([tenantId])
+  @@index([threatId])
+  @@index([severity])
+  @@index([status])
+  @@index([priority])
+  @@index([assignee])
+  @@index([fingerprint])
+  @@map("alerts")
+}
+
+model AlertNote {
+  id        String   @id @default(uuid())
+  alertId   String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@index([alertId])
+  @@map("alert_notes")
+}
+
+model AlertHistory {
+  id        String   @id @default(uuid())
+  alertId   String
+  action    String
+  userId    String?
+  changes   Json?
+  timestamp DateTime @default(now())
+  
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@index([alertId])
+  @@index([timestamp])
+  @@map("alert_history")
+}
+
+model Case {
+  id          String   @id @default(uuid())
+  tenantId    String
+  title       String
+  description String?  @db.Text
+  
+  // Classification
+  type        String   @default("incident")
+  severity    String   @default("low")
+  priority    String   @default("P3")
+  status      String   @default("new")
+  category    String?
+  tags        Json     @default("[]")
+  
+  // Assignment
+  assignee          String?
+  investigator      String?
+  participants      Json      @default("[]")
+  assignedAt        DateTime?
+  
+  // Workflow Timestamps
+  acknowledgedAt    DateTime?
+  triagedAt         DateTime?
+  containedAt       DateTime?
+  remediatedAt      DateTime?
+  closedAt          DateTime?
+  
+  // Impact & Scope
+  confidenceScore   Int       @default(50)
+  impactLevel       String    @default("low")
+  affectedSystems   Json      @default("[]")
+  affectedUsers     Json      @default("[]")
+  
+  // SLA
+  slaResponseTime   Int?
+  slaResolutionTime Int?
+  slaViolated       Boolean   @default(false)
+  
+  // Relationships
+  source            String?
+  sourceType        String?
+  relatedCases      Json      @default("[]")
+  parentCaseId      String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  threats     CaseToThreat[]
+  alerts      CaseToAlert[]
+  timeline    CaseTimeline[]
+  notes       CaseNote[]
+  tasks       CaseTask[]
+  evidence    Evidence[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([severity])
+  @@index([priority])
+  @@index([assignee])
+  @@map("cases")
+}
+
+model CaseTimeline {
+  id          String   @id @default(uuid())
+  caseId      String
+  timestamp   DateTime @default(now())
+  action      String
+  actor       String?
+  description String?
+  metadata    Json?
+  
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  @@index([caseId])
+  @@index([timestamp])
+  @@map("case_timeline")
+}
+
+model CaseNote {
+  id          String   @id @default(uuid())
+  caseId      String
+  userId      String
+  content     String   @db.Text
+  type        String   @default("note")
+  isPrivate   Boolean  @default(false)
+  isPinned    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  @@index([caseId])
+  @@index([userId])
+  @@map("case_notes")
+}
+
+model CaseTask {
+  id              String   @id @default(uuid())
+  caseId          String
+  tenantId        String
+  title           String
+  description     String?  @db.Text
+  status          String   @default("todo")
+  priority        String   @default("medium")
+  
+  assignee        String?
+  assignedAt      DateTime?
+  dueDate         DateTime?
+  completedAt     DateTime?
+  
+  estimatedTime   Int?
+  actualTime      Int?
+  
+  dependsOn       Json     @default("[]")
+  blockedBy       String?
+  blockedReason   String?
+  
+  checklist       Json     @default("[]")
+  tags            Json     @default("[]")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  @@index([caseId])
+  @@index([tenantId])
+  @@index([assignee])
+  @@index([status])
+  @@map("case_tasks")
+}
+
+model Evidence {
+  id              String   @id @default(uuid())
+  caseId          String
+  tenantId        String
+  
+  type            String
+  name            String
+  description     String?  @db.Text
+  
+  fileSize        Int?
+  mimeType        String?
+  hash            String?
+  storagePath     String?
+  storageUrl      String?
+  
+  collectedBy     String
+  collectedAt     DateTime @default(now())
+  source          String?
+  sourceSystem    String?
+  
+  chainOfCustody  Json     @default("[]")
+  verified        Boolean  @default(false)
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  
+  tags            Json     @default("[]")
+  category        String?
+  metadata        Json?
+  extractedIOCs   Json     @default("[]")
+  
+  createdAt       DateTime @default(now())
+  
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  @@index([caseId])
+  @@index([tenantId])
+  @@index([hash])
+  @@map("evidence")
+}
+
+model CaseToThreat {
+  caseId    String
+  threatId  String
+  addedAt   DateTime @default(now())
+
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  threat    Threat   @relation(fields: [threatId], references: [id], onDelete: Cascade)
+
+  @@id([caseId, threatId])
+  @@map("case_threats")
+}
+
+model CaseToAlert {
+  caseId    String
+  alertId   String
+  addedAt   DateTime @default(now())
+
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@id([caseId, alertId])
+  @@map("case_alerts")
+}
+
+// ============================================
+// DETECTION & RESPONSE
+// ============================================
+
+model Rule {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?  @db.Text
+  type        String
+  conditions  Json
+  actions     Json
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([type])
+  @@map("rules")
+}
+
+model Feed {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  url         String
+  type        String
+  format      String   @default("json")
+  isEnabled   Boolean  @default(true)
+  lastSync    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("feeds")
+}
+
+model Integration {
+  id            String   @id @default(uuid())
+  tenantId      String
+  name          String
+  type          String
+  config        Json
+  isEnabled     Boolean  @default(true)
+  lastSync      DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("integrations")
+}
+
+// ============================================
+// WORKFLOW & AUTOMATION
+// ============================================
+
+model Workflow {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?  @db.Text
+  trigger     Json
+  actions     Json
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("workflows")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  type        String
+  data        Json
+  format      String   @default("json")
+  generatedAt DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([type])
+  @@map("reports")
+}
+
+// ============================================
+// CONFIGURATION
+// ============================================
+
+model TenantConfiguration {
+  id          String   @id @default(uuid())
+  tenantId    String
+  key         String
+  value       Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@map("tenant_configurations")
+}
+
+// ============================================
+// STIX 2.1 & TAXII 2.1
+// ============================================
+
+model STIXBundle {
+  id              String   @id @default(uuid())
+  tenantId        String
+  bundleId        String   @unique
+  type            String   @default("bundle")
+  specVersion     String   @default("2.1")
+  objects         Json     @default("[]")
+  createdAt       DateTime @default(now())
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([bundleId])
+  @@map("stix_bundles")
+}
+
+model TAXIICollection {
+  id              String   @id @default(uuid())
+  tenantId        String
+  collectionId    String   @unique
+  title           String
+  description     String?  @db.Text
+  canRead         Boolean  @default(true)
+  canWrite        Boolean  @default(false)
+  mediaTypes      Json     @default("[\"application/stix+json;version=2.1\"]")
+  createdAt       DateTime @default(now())
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@map("taxii_collections")
+}
+
+// ============================================
+// MISP Integration
+// ============================================
+
+model MISPEvent {
+  id              String   @id @default(uuid())
+  tenantId        String
+  eventId         String
+  orgId           String?
+  orgcId          String?
+  info            String
+  date            String
+  threatLevel     String   @default("undefined")
+  analysis        String   @default("0")
+  distribution    String   @default("0")
+  published       Boolean  @default(false)
+  uuid            String   @unique
+  attributes      Json     @default("[]")
+  tags            Json     @default("[]")
+  galaxies        Json     @default("[]")
+  rawData         Json
+  lastSync        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([eventId])
+  @@index([uuid])
+  @@index([published])
+  @@map("misp_events")
+}
+
+// ============================================
+// CVE & Vulnerability Intelligence
+// ============================================
+
+model CVEVulnerability {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  cveId               String   @unique
+  description         String?  @db.Text
+  severity            String?
+  cvssScore           Float?
+  cvssVector          String?
+  publishedDate       DateTime?
+  lastModifiedDate    DateTime?
+  cweId               String?
+  references          Json     @default("[]")
+  affectedProducts    Json     @default("[]")
+  exploitAvailable    Boolean  @default(false)
+  exploitMaturity     String?
+  patchAvailable      Boolean  @default(false)
+  enrichmentData      Json     @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([cveId])
+  @@index([severity])
+  @@index([cvssScore])
+  @@map("cve_vulnerabilities")
+}
+
+// ============================================
+// OSINT Feeds
+// ============================================
+
+model OSINTFeed {
+  id              String   @id @default(uuid())
+  tenantId        String
+  name            String
+  feedType        String
+  url             String?
+  enabled         Boolean  @default(true)
+  schedule        String   @default("0 */6 * * *")
+  lastFetch       DateTime?
+  lastSuccess     DateTime?
+  lastError       String?
+  itemsCollected  Int      @default(0)
+  config          Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([feedType])
+  @@index([enabled])
+  @@map("osint_feeds")
+}
+
+// ============================================
+// Dark Web Monitoring
+// ============================================
+
+model DarkWebItem {
+  id              String   @id @default(uuid())
+  tenantId        String
+  source          String
+  sourceType      String
+  title           String?
+  content         String   @db.Text
+  url             String?
+  author          String?
+  timestamp       DateTime?
+  iocs            Json     @default("[]")
+  keywords        Json     @default("[]")
+  threatScore     Int      @default(0)
+  metadata        Json     @default("{}")
+  collectedAt     DateTime @default(now())
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([sourceType])
+  @@index([collectedAt])
+  @@map("darkweb_items")
+}
+
+// ============================================
+// Honeypot Integration
+// ============================================
+
+model HoneypotLog {
+  id              String   @id @default(uuid())
+  tenantId        String
+  honeypotType    String
+  sourceIp        String
+  sourcePort      Int?
+  destinationIp   String?
+  destinationPort Int?
+  protocol        String?
+  payload         String?  @db.Text
+  session         String?
+  username        String?
+  password        String?
+  command         String?
+  iocs            Json     @default("[]")
+  threatLevel     String   @default("low")
+  metadata        Json     @default("{}")
+  timestamp       DateTime @default(now())
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([honeypotType])
+  @@index([sourceIp])
+  @@index([timestamp])
+  @@map("honeypot_logs")
+}
+
+// ============================================
+// IOC History (Historical Tracking)
+// ============================================
+
+model IOCHistory {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  iocValue        String
+  iocType         String
+  
+  enrichmentData  Json     @default("{}")
+  threatScore     Int      @default(0)
+  reputation      String   @default("unknown")
+  
+  observedAt      DateTime @default(now())
+  source          String?
+  
+  @@index([tenantId, iocValue, iocType])
+  @@index([observedAt])
+  @@map("ioc_history")
+}
+
+// ============================================
+// IOC Relationships
+// ============================================
+
+model IOCRelationship {
+  id                String   @id @default(uuid())
+  tenantId          String
+  
+  ioc1              String
+  ioc2              String
+  relationshipType  String   @default("related")
+  confidence        Int      @default(50)
+  
+  context           Json?    @default("{}")
+  detectedAt        DateTime @default(now())
+  
+  @@index([tenantId, ioc1])
+  @@index([tenantId, ioc2])
+  @@index([relationshipType])
+  @@map("ioc_relationships")
+}
+
+// ============================================
+// TTP Extraction
+// ============================================
+
+model TTP {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Source
+  threatId        String?
+  alertId         String?
+  caseId          String?
+  campaignId      String?
+  sourceType      String   @default("manual")
+  
+  // MITRE ATT&CK
+  tactic          String
+  tacticId        String
+  technique       String
+  techniqueId     String
+  subTechnique    String?
+  subTechniqueId  String?
+  
+  // Extraction
+  confidence      Int      @default(50)
+  evidence        Json?    @default("[]")
+  extractedFrom   String?
+  
+  // Metadata
+  detectedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  
+  campaign        Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  
+  @@index([tenantId, tactic])
+  @@index([tenantId, techniqueId])
+  @@index([threatId])
+  @@index([campaignId])
+  @@index([confidence])
+  @@map("ttps")
+}
+
+// ============================================
+// Campaign Tracking
+// ============================================
+
+model Campaign {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?  @db.Text
+  
+  // Attribution
+  threatActor     String?
+  motivation      String?
+  sophistication  String   @default("unknown")
+  country         String?
+  
+  // Activity
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime @default(now())
+  status          String   @default("active")
+  
+  // Targets
+  targetSectors   Json     @default("[]")
+  targetCountries Json     @default("[]")
+  targetAssets    Json     @default("[]")
+  
+  // Scope
+  victimCount     Int      @default(0)
+  iocs            Json     @default("[]")
+  ttps            TTP[]
+  
+  // Confidence
+  confidence      Int      @default(50)
+  tags            Json     @default("[]")
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([threatActor])
+  @@index([confidence])
+  @@map("campaigns")
+}
+
+// ============================================
+// Threat Actor Profiling
+// ============================================
+
+model ThreatActor {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Identity
+  name            String
+  aliases         Json     @default("[]")
+  type            String   @default("unknown")
+  
+  // Attribution
+  country         String?
+  sponsorship     String?
+  motivation      String?
+  sophistication  String   @default("unknown")
+  
+  // Activity
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime @default(now())
+  status          String   @default("active")
+  
+  // Targets
+  targetSectors   Json     @default("[]")
+  targetCountries Json     @default("[]")
+  targetTech      Json     @default("[]")
+  
+  // TTP Profile
+  preferredTTPs   Json     @default("[]")
+  tools           Json     @default("[]")
+  malwareFamilies Json     @default("[]")
+  
+  // Infrastructure
+  knownIPs        Json     @default("[]")
+  knownDomains    Json     @default("[]")
+  knownEmails     Json     @default("[]")
+  
+  // Intelligence
+  confidence      Int      @default(50)
+  threatLevel     String   @default("medium")
+  campaigns       Json     @default("[]")
+  
+  // Metadata
+  description     String?  @db.Text
+  sources         Json     @default("[]")
+  tags            Json     @default("[]")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([name])
+  @@index([country])
+  @@index([status])
+  @@index([threatLevel])
+  @@map("threat_actors")
+}
+
+// ============================================
+// PLAYBOOKS & SOAR
+// ============================================
+
+model Playbook {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?  @db.Text
+  category        String
+  type            String   @default("response")
+  
+  version         String   @default("1.0")
+  isPublished     Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  
+  // Trigger
+  trigger         Json     // event type + conditions
+  
+  // Workflow
+  steps           Json     @default("[]")
+  variables       Json     @default("{}")
+  
+  // Approval
+  requiresApproval Boolean  @default(false)
+  approvers       Json     @default("[]")
+  
+  // Configuration
+  timeout         Int      @default(3600)
+  retryPolicy     Json     @default("{}")
+  
+  // Metadata
+  tags            Json     @default("[]")
+  author          String?
+  createdBy       String?
+  
+  // Metrics
+  executionCount  Int      @default(0)
+  successRate     Float    @default(0)
+  avgExecutionTime Int     @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  publishedAt     DateTime?
+  
+  executions      PlaybookExecution[]
+  
+  @@index([tenantId])
+  @@index([category])
+  @@index([isPublished])
+  @@index([isActive])
+  @@map("playbooks")
+}
+
+model PlaybookExecution {
+  id              String   @id @default(uuid())
+  playbookId      String
+  tenantId        String
+  
+  playbook        Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Trigger Info
+  triggeredBy     String
+  triggerSource   String?
+  triggerData     Json?
+  
+  // Status
+  status          String   @default("pending")
+  currentStep     String?
+  
+  // Timing
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  executionTime   Int?
+  
+  // Results
+  results         Json     @default("{}")
+  errors          Json     @default("[]")
+  
+  // Approvals
+  approvals       Json     @default("[]")
+  
+  createdAt       DateTime @default(now())
+  
+  stepExecutions  PlaybookStepExecution[]
+  
+  @@index([tenantId])
+  @@index([playbookId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("playbook_executions")
+}
+
+model PlaybookStepExecution {
+  id              String   @id @default(uuid())
+  executionId     String
+  stepId          String
+  
+  execution       PlaybookExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  status          String
+  result          Json?
+  error           String?
+  
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  executionTime   Int?
+  
+  output          Json?
+  retryCount      Int      @default(0)
+  
+  @@index([executionId])
+  @@index([stepId])
+  @@map("playbook_step_executions")
+}

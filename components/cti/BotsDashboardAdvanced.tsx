@@ -18,7 +18,7 @@ import {
   Bot, Brain, Activity, Play, Pause, Settings, 
   BarChart3, TrendingUp, AlertTriangle, CheckCircle,
   Clock, Zap, Target, Database, RefreshCw, Plus,
-  Eye, Edit, Trash2, Copy, Filter, Search, Memory,
+  Eye, Edit, Trash2, Copy, Filter, Search,
   Cpu, HardDrive, Network, Gauge, Users, FileText,
   Workflow, Monitor, Bell, History
 } from 'lucide-react';

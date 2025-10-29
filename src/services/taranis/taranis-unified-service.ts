@@ -82,6 +82,9 @@ export interface TaranisConfig {
     content: string;
     createdDate: string;
     updatedDate: string;
+    created?: string;
+    last_change?: string;
+    important?: boolean;
     status: 'draft' | 'published' | 'archived';
     tags: string[];
     newsItems: TaranisNewsItem[];
@@ -219,13 +222,223 @@ export interface TaranisConfig {
     updatedDate?: string;
   }
   
-  export interface ApiResponse<T = unknown> {
+  export interface ApiResponse<T = any> {
     success: boolean;
     data?: T;
     error?: string;
     status?: number;
   }
-  
+
+  export interface PaginatedResponse<T = any> {
+    total_count: number;
+    items: T[];
+  }
+
+  // ============ TYPES USERS & ROLES ============
+
+  export interface TaranisUser {
+    id: number;
+    username: string;
+    name: string;
+    email?: string;
+    organization_id?: number;
+    organization?: TaranisOrganization;
+    roles: TaranisRole[];
+    permissions: string[];
+    created_date?: string;
+    last_login?: string;
+    enabled: boolean;
+  }
+
+  export interface TaranisRole {
+    id: number;
+    name: string;
+    description?: string;
+    permissions: string[];
+  }
+
+  export interface TaranisPermission {
+    id: string;
+    name: string;
+    description?: string;
+    category?: string;
+  }
+
+  export interface TaranisOrganization {
+    id: number;
+    name: string;
+    description?: string;
+    created_date?: string;
+    updated_date?: string;
+  }
+
+  // ============ TYPES CONFIGURATION ============
+
+  export interface TaranisAttribute {
+    id: number;
+    name: string;
+    description?: string;
+    type: string;
+    default_value?: string;
+    validator?: string;
+    validator_parameter?: string;
+  }
+
+  export interface TaranisReportItemType {
+    id: number;
+    title: string;
+    description?: string;
+    attribute_groups?: TaranisAttributeGroup[];
+  }
+
+  export interface TaranisAttributeGroup {
+    id: number;
+    title: string;
+    description?: string;
+    section: number;
+    section_title?: string;
+    index: number;
+    attribute_group_items?: TaranisAttributeGroupItem[];
+  }
+
+  export interface TaranisAttributeGroupItem {
+    id: number;
+    title: string;
+    description?: string;
+    index: number;
+    required: boolean;
+    attribute: TaranisAttribute;
+  }
+
+  export interface TaranisProductType {
+    id: number;
+    title: string;
+    description?: string;
+    type: string;
+    parameters?: Record<string, any>;
+    report_types?: number[];
+  }
+
+  export interface TaranisConnector {
+    id: string;
+    name: string;
+    description?: string;
+    type: string;
+    parameters?: Record<string, any>;
+  }
+
+  export interface TaranisPublisherPreset {
+    id: string;
+    name: string;
+    description?: string;
+    type: string;
+    parameters?: Record<string, any>;
+  }
+
+  export interface TaranisACL {
+    id: number;
+    name: string;
+    description?: string;
+    item_type: string;
+    item_id: string;
+    roles: number[];
+    users: number[];
+    access_type: string;
+  }
+
+  // ============ TYPES WORKERS & TASKS ============
+
+  export interface TaranisWorker {
+    id: string;
+    name: string;
+    type: string;
+    status: 'online' | 'offline';
+    last_seen?: string;
+  }
+
+  export interface TaranisWorkerType {
+    id: string;
+    name: string;
+    description?: string;
+    category: string;
+    type: string;
+    parameters?: any[];
+  }
+
+  export interface TaranisScheduleTask {
+    id: string;
+    name: string;
+    cron: string;
+    next_run_time?: string;
+    enabled: boolean;
+  }
+
+  export interface TaranisQueueStatus {
+    name: string;
+    messages: number;
+    consumers: number;
+  }
+
+  export interface TaranisTaskResult {
+    id: string;
+    task: string;
+    status: string;
+    result?: string;
+    date_done?: string;
+  }
+
+  // ============ TYPES CONFLICTS ============
+
+  export interface TaranisStoryConflict {
+    storyId: string;
+    original: any;
+    updated: any;
+    hasProposals: boolean;
+  }
+
+  export interface TaranisNewsItemConflict {
+    incoming_story_id: string;
+    news_item_id: string;
+    existing_story_id: string;
+    incoming_story: any;
+    misp_address?: string;
+  }
+
+  // ============ TYPES DASHBOARD ============
+
+  export interface TaranisDashboardData {
+    total_stories: number;
+    unread_stories: number;
+    important_stories: number;
+    in_analyze_stories: number;
+    total_products: number;
+    total_report_items: number;
+    pending_report_items: number;
+    completed_report_items: number;
+    recent_stories?: any[];
+    recent_report_items?: any[];
+  }
+
+  export interface TaranisBuildInfo {
+    build_date: string;
+    git_commit: string;
+    git_branch: string;
+    git_tag: string;
+  }
+
+  export interface TaranisCluster {
+    tag_name: string;
+    tag_type: string;
+    size: number;
+    stories?: any[];
+  }
+
+  // ============ TYPES ADMIN ============
+
+  export interface TaranisSystemSettings {
+    [key: string]: any;
+  }
+
   // ============ ERREURS CUSTOM ============
   
   export class TaranisError extends Error {
@@ -266,8 +479,15 @@ export interface TaranisConfig {
     private authQueue: Array<(token: string) => void> = [];
   
     constructor(config?: Partial<TaranisConfig>) {
+      // En développement, utiliser le proxy Vite (/api -> http://localhost:8080)
+      // En production, utiliser l'URL complète de la variable d'environnement
+      const isDevelopment = import.meta.env?.DEV || import.meta.env?.MODE === 'development';
+      const defaultBaseUrl = isDevelopment 
+        ? '/api'  // Utilise le proxy Vite configuré dans vite.config.ts
+        : (import.meta.env?.VITE_TARANIS_API_URL || 'http://localhost:8080/api');
+      
       this.config = {
-        baseUrl: (import.meta.env?.VITE_TARANIS_API_URL || '/api').replace(/\/$/, ''),
+        baseUrl: (config?.baseUrl || defaultBaseUrl).replace(/\/$/, ''),
         defaultCredentials: {
           username: 'admin',
           password: 'admin'
@@ -373,7 +593,7 @@ export interface TaranisConfig {
   
     // ============ REQUÊTES HTTP ============
   
-    private async makeRequest<T = unknown>(
+    private async makeRequest<T = any>(
       endpoint: string,
       options: {
         method?: string;
@@ -921,10 +1141,7 @@ export interface TaranisConfig {
       try {
         const response = await this.makeRequest('/config/bots', {
           method: 'POST',
-          body: JSON.stringify(botData),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: JSON.stringify(botData)
         });
 
         if (!response.success) {
@@ -966,10 +1183,7 @@ export interface TaranisConfig {
       try {
         const response = await this.makeRequest(`/config/bots/${botId}`, {
           method: 'PUT',
-          body: JSON.stringify(botData),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: JSON.stringify(botData)
         });
 
         if (!response.success) {
@@ -1043,10 +1257,7 @@ export interface TaranisConfig {
       try {
         const response = await this.makeRequest('/analyze/report-items', {
           method: 'POST',
-          body: JSON.stringify(reportItemData),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: JSON.stringify(reportItemData)
         });
 
         if (!response.success) {
@@ -1086,10 +1297,7 @@ export interface TaranisConfig {
       try {
         const response = await this.makeRequest(`/analyze/report-items/${reportItemId}`, {
           method: 'PUT',
-          body: JSON.stringify(updateData),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: JSON.stringify(updateData)
         });
 
         if (!response.success) {
@@ -1184,8 +1392,21 @@ export interface TaranisConfig {
       });
     }
   
-    async getNewsItems(limit = 50): Promise<TaranisNewsItem[]> {
-      const response = await this.makeRequest(`/assess/news-items?limit=${limit}`);
+  async getNewsItems(params?: {
+    limit?: number;
+    range?: string;
+    cybersecurity?: boolean;
+    offset?: number;
+    search?: string;
+  }): Promise<TaranisNewsItem[]> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('limit', String(params?.limit || 50));
+    if (params?.range) queryParams.append('range', params.range);
+    if (params?.cybersecurity !== undefined) queryParams.append('cybersecurity', String(params.cybersecurity));
+    if (params?.offset) queryParams.append('offset', String(params.offset));
+    if (params?.search) queryParams.append('search', params.search);
+    
+    const response = await this.makeRequest(`/assess/news-items?${queryParams.toString()}`);
       
       if (!response.success) {
         throw new TaranisError(`Failed to fetch news items: ${response.error}`, 'FETCH_ERROR', response.status);
@@ -1842,18 +2063,28 @@ export interface TaranisConfig {
       }
     }
   
-    async getTrendingClusters(): Promise<any[]> {
-      try {
-        const response = await this.makeRequest('/dashboard/trending-clusters');
-        if (response.success) {
-          return response.data || response || [];
-        }
-        return [];
-      } catch (error) {
-        console.warn('Trending clusters non disponible');
-        return [];
-      }
+  async getTrendingClusters(days: number = 7): Promise<any> {
+    try {
+      const response = await this.makeRequest(`/dashboard/trending-clusters?days=${days}`);
+      // Retourner directement la réponse (items ou array)
+      return (response.data as any)?.items || response.data || [];
+    } catch (error) {
+      console.warn('⚠️ Trending clusters non disponible');
+      return [];
     }
+  }
+
+  async getStoryClusters(days: number = 7, limit: number = 50): Promise<any[]> {
+    try {
+      const response = await this.makeRequest(`/dashboard/story-clusters?days=${days}&limit=${limit}`);
+      // Les story clusters sont retournés directement comme array
+      const data = response.data as any;
+      return Array.isArray(data) ? data : (data?.items || []);
+    } catch (error) {
+      console.warn('⚠️ Story clusters non disponible');
+      return [];
+    }
+  }
   
     // ============ WORKER ENDPOINTS (ADVANCED) ============
   
@@ -2039,7 +2270,1525 @@ export interface TaranisConfig {
         return false;
       }
     }
-  
+
+    // ============ AUTH ENDPOINTS (ADDITIONAL) ============
+
+    async getAuthMethod(): Promise<string> {
+      const response = await this.makeRequest('/auth/method', { skipAuth: true });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get auth method: ${response.error}`, 'GET_AUTH_METHOD_ERROR', response.status);
+      }
+      return response.data?.auth_method || 'database';
+    }
+
+    // ============ USERS ENDPOINTS (ADDITIONAL) ============
+
+    async updateUserProfile(profileData: any): Promise<any> {
+      const response = await this.makeRequest('/users/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profileData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update profile: ${response.error}`, 'UPDATE_PROFILE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async notifySSEConnected(): Promise<boolean> {
+      try {
+        const response = await this.makeRequest('/users/sse-connected', {
+          method: 'POST'
+        });
+        return response.success;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    // ============ DASHBOARD ENDPOINTS (ADDITIONAL) ============
+
+    async getClusterByTagType(tagType: string, params?: {
+      per_page?: number;
+      page?: number;
+      sort_by?: string;
+      search?: string;
+    }): Promise<PaginatedResponse<TaranisCluster>> {
+      const response = await this.makeRequest(`/dashboard/cluster/${tagType}`, {
+        method: 'GET'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get cluster: ${response.error}`, 'GET_CLUSTER_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async deleteTag(tagName: string): Promise<boolean> {
+      const response = await this.makeRequest(`/dashboard/delete-tag/${encodeURIComponent(tagName)}`, {
+        method: 'DELETE'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete tag: ${response.error}`, 'DELETE_TAG_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getBuildInfo(): Promise<TaranisBuildInfo> {
+      const response = await this.makeRequest('/dashboard/build-info');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get build info: ${response.error}`, 'GET_BUILD_INFO_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    // ============ ASSESS ENDPOINTS (ADDITIONAL) ============
+
+    async shareStoryToConnector(connectorId: string, storyIds: string[]): Promise<boolean> {
+      const response = await this.makeRequest(`/assess/story/${connectorId}/share`, {
+        method: 'POST',
+        body: JSON.stringify({ story_ids: storyIds })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to share stories: ${response.error}`, 'SHARE_STORIES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async ungroupNewsItems(newsItemIds: string[]): Promise<boolean> {
+      const response = await this.makeRequest('/assess/news-items/ungroup', {
+        method: 'PUT',
+        body: JSON.stringify(newsItemIds)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to ungroup news items: ${response.error}`, 'UNGROUP_NEWS_ITEMS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getTags(params?: {
+      search?: string;
+      limit?: number;
+      offset?: number;
+      min_size?: number;
+    }): Promise<PaginatedResponse<{ name: string; tag_type: string; size: number }>> {
+      const response = await this.makeRequest('/assess/tags', {
+        method: 'GET'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get tags: ${response.error}`, 'GET_TAGS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getTagList(params?: {
+      search?: string;
+      limit?: number;
+      offset?: number;
+    }): Promise<PaginatedResponse<string>> {
+      const response = await this.makeRequest('/assess/taglist', {
+        method: 'GET'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get tag list: ${response.error}`, 'GET_TAG_LIST_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getConnectorProposalsCount(): Promise<number> {
+      try {
+        const response = await this.makeRequest('/assess/connectors/proposals');
+        if (response.success) {
+          return response.data?.count || 0;
+        }
+        return 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    // ============ ANALYZE ENDPOINTS (ADDITIONAL) ============
+
+    async getReportItemStories(reportItemId: string): Promise<string[]> {
+      const response = await this.makeRequest(`/analyze/report-items/${reportItemId}/stories`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get report item stories: ${response.error}`, 'GET_REPORT_STORIES_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async setReportItemStories(reportItemId: string, storyIds: string[]): Promise<boolean> {
+      const response = await this.makeRequest(`/analyze/report-items/${reportItemId}/stories`, {
+        method: 'PUT',
+        body: JSON.stringify(storyIds)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to set report item stories: ${response.error}`, 'SET_REPORT_STORIES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async addReportItemStories(reportItemId: string, storyIds: string[]): Promise<boolean> {
+      const response = await this.makeRequest(`/analyze/report-items/${reportItemId}/stories`, {
+        method: 'POST',
+        body: JSON.stringify(storyIds)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to add report item stories: ${response.error}`, 'ADD_REPORT_STORIES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getReportItemLockStatus(reportItemId: string): Promise<{
+      locked: boolean;
+      locked_by?: number;
+      locked_at?: string;
+    }> {
+      const response = await this.makeRequest(`/analyze/report-items/${reportItemId}/locks`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get lock status: ${response.error}`, 'GET_LOCK_STATUS_ERROR', response.status);
+      }
+      return response.data || { locked: false };
+    }
+
+    async getReportTypes(): Promise<PaginatedResponse<TaranisReportItemType>> {
+      const response = await this.makeRequest('/analyze/report-types');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get report types: ${response.error}`, 'GET_REPORT_TYPES_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    // ============ PUBLISH ENDPOINTS (ADDITIONAL) ============
+
+    async createProduct(productData: {
+      title: string;
+      description?: string;
+      product_type_id: number;
+      report_items?: string[];
+    }): Promise<TaranisProduct> {
+      const response = await this.makeRequest('/publish/products', {
+        method: 'POST',
+        body: JSON.stringify(productData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create product: ${response.error}`, 'CREATE_PRODUCT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async generateProductRender(productId: string): Promise<any> {
+      const response = await this.makeRequest(`/publish/products/${productId}/render`, {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to generate render: ${response.error}`, 'GENERATE_RENDER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getProductTypes(): Promise<PaginatedResponse<TaranisProductType>> {
+      const response = await this.makeRequest('/publish/product-types');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get product types: ${response.error}`, 'GET_PRODUCT_TYPES_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    // ============ CONFIG: USERS & ROLES ============
+
+    async getUsers(params?: {
+      search?: string;
+      organization_id?: number;
+      role_id?: number;
+      enabled?: boolean;
+      limit?: number;
+      offset?: number;
+    }): Promise<PaginatedResponse<TaranisUser>> {
+      const response = await this.makeRequest('/config/users', { method: 'GET' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get users: ${response.error}`, 'GET_USERS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getUser(userId: number | string): Promise<TaranisUser> {
+      const response = await this.makeRequest(`/config/users/${userId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get user: ${response.error}`, 'GET_USER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createUser(userData: Omit<TaranisUser, 'id' | 'created_date'> & { password: string }): Promise<TaranisUser> {
+      const response = await this.makeRequest('/config/users', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create user: ${response.error}`, 'CREATE_USER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateUser(userId: number | string, updates: Partial<TaranisUser>): Promise<TaranisUser> {
+      const response = await this.makeRequest(`/config/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update user: ${response.error}`, 'UPDATE_USER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteUser(userId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/users/${userId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete user: ${response.error}`, 'DELETE_USER_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async importUsers(users: any[]): Promise<{ users: any[]; count: number }> {
+      const response = await this.makeRequest('/config/users-import', {
+        method: 'POST',
+        body: JSON.stringify(users)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to import users: ${response.error}`, 'IMPORT_USERS_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async exportUsers(userIds?: string[]): Promise<any> {
+      const response = await this.makeRequest('/config/users-export', { method: 'GET' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to export users: ${response.error}`, 'EXPORT_USERS_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getRoles(params?: { search?: string }): Promise<PaginatedResponse<TaranisRole>> {
+      const response = await this.makeRequest('/config/roles', { method: 'GET' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get roles: ${response.error}`, 'GET_ROLES_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getRole(roleId: number | string): Promise<TaranisRole> {
+      const response = await this.makeRequest(`/config/roles/${roleId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get role: ${response.error}`, 'GET_ROLE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createRole(roleData: Omit<TaranisRole, 'id'>): Promise<TaranisRole> {
+      const response = await this.makeRequest('/config/roles', {
+        method: 'POST',
+        body: JSON.stringify(roleData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create role: ${response.error}`, 'CREATE_ROLE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateRole(roleId: number | string, updates: Partial<TaranisRole>): Promise<TaranisRole> {
+      const response = await this.makeRequest(`/config/roles/${roleId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update role: ${response.error}`, 'UPDATE_ROLE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteRole(roleId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/roles/${roleId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete role: ${response.error}`, 'DELETE_ROLE_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getPermissions(): Promise<PaginatedResponse<TaranisPermission>> {
+      const response = await this.makeRequest('/config/permissions');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get permissions: ${response.error}`, 'GET_PERMISSIONS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    // ============ CONFIG: ORGANIZATIONS ============
+
+    async getOrganizations(params?: { search?: string }): Promise<PaginatedResponse<TaranisOrganization>> {
+      const response = await this.makeRequest('/config/organizations', { method: 'GET' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to get organizations: ${response.error}`, 'GET_ORGS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getOrganization(orgId: number | string): Promise<TaranisOrganization> {
+      const response = await this.makeRequest(`/config/organizations/${orgId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get organization: ${response.error}`, 'GET_ORG_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createOrganization(orgData: Omit<TaranisOrganization, 'id' | 'created_date' | 'updated_date'>): Promise<TaranisOrganization> {
+      const response = await this.makeRequest('/config/organizations', {
+        method: 'POST',
+        body: JSON.stringify(orgData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create organization: ${response.error}`, 'CREATE_ORG_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateOrganization(orgId: number | string, updates: Partial<TaranisOrganization>): Promise<TaranisOrganization> {
+      const response = await this.makeRequest(`/config/organizations/${orgId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update organization: ${response.error}`, 'UPDATE_ORG_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteOrganization(orgId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/organizations/${orgId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete organization: ${response.error}`, 'DELETE_ORG_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ CONFIG: ATTRIBUTES ============
+
+    async getAttributes(): Promise<PaginatedResponse<TaranisAttribute>> {
+      const response = await this.makeRequest('/config/attributes');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get attributes: ${response.error}`, 'GET_ATTRS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getAttribute(attrId: number | string): Promise<TaranisAttribute> {
+      const response = await this.makeRequest(`/config/attributes/${attrId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get attribute: ${response.error}`, 'GET_ATTR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createAttribute(attrData: Omit<TaranisAttribute, 'id'>): Promise<TaranisAttribute> {
+      const response = await this.makeRequest('/config/attributes', {
+        method: 'POST',
+        body: JSON.stringify(attrData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create attribute: ${response.error}`, 'CREATE_ATTR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateAttribute(attrId: number | string, updates: Partial<TaranisAttribute>): Promise<TaranisAttribute> {
+      const response = await this.makeRequest(`/config/attributes/${attrId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update attribute: ${response.error}`, 'UPDATE_ATTR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteAttribute(attrId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/attributes/${attrId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete attribute: ${response.error}`, 'DELETE_ATTR_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async reloadDictionary(dictionaryType: string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/dictionaries-reload/${dictionaryType}`, {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to reload dictionary: ${response.error}`, 'RELOAD_DICT_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ CONFIG: REPORT ITEM TYPES ============
+
+    async getReportItemTypes(): Promise<PaginatedResponse<TaranisReportItemType>> {
+      const response = await this.makeRequest('/config/report-item-types');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get report item types: ${response.error}`, 'GET_REPORT_TYPES_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getReportItemType(typeId: number | string): Promise<TaranisReportItemType> {
+      const response = await this.makeRequest(`/config/report-item-types/${typeId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get report item type: ${response.error}`, 'GET_REPORT_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createReportItemType(typeData: Omit<TaranisReportItemType, 'id'>): Promise<TaranisReportItemType> {
+      const response = await this.makeRequest('/config/report-item-types', {
+        method: 'POST',
+        body: JSON.stringify(typeData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create report item type: ${response.error}`, 'CREATE_REPORT_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateReportItemType(typeId: number | string, updates: Partial<TaranisReportItemType>): Promise<TaranisReportItemType> {
+      const response = await this.makeRequest(`/config/report-item-types/${typeId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update report item type: ${response.error}`, 'UPDATE_REPORT_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteReportItemType(typeId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/report-item-types/${typeId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete report item type: ${response.error}`, 'DELETE_REPORT_TYPE_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async exportReportItemTypes(typeIds?: number[]): Promise<any> {
+      const response = await this.makeRequest('/config/export-report-item-types', { method: 'GET' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to export report item types: ${response.error}`, 'EXPORT_REPORT_TYPES_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async importReportItemTypes(data: any): Promise<boolean> {
+      const response = await this.makeRequest('/config/import-report-item-types', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to import report item types: ${response.error}`, 'IMPORT_REPORT_TYPES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ CONFIG: PRODUCT TYPES (DETAILED) ============
+
+    async getConfigProductTypes(): Promise<PaginatedResponse<TaranisProductType>> {
+      const response = await this.makeRequest('/config/product-types');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get product types: ${response.error}`, 'GET_PROD_TYPES_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getConfigProductType(typeId: number | string): Promise<TaranisProductType> {
+      const response = await this.makeRequest(`/config/product-types/${typeId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get product type: ${response.error}`, 'GET_PROD_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createConfigProductType(typeData: Omit<TaranisProductType, 'id'>): Promise<TaranisProductType> {
+      const response = await this.makeRequest('/config/product-types', {
+        method: 'POST',
+        body: JSON.stringify(typeData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create product type: ${response.error}`, 'CREATE_PROD_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateConfigProductType(typeId: number | string, updates: Partial<TaranisProductType>): Promise<TaranisProductType> {
+      const response = await this.makeRequest(`/config/product-types/${typeId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update product type: ${response.error}`, 'UPDATE_PROD_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteConfigProductType(typeId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/product-types/${typeId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete product type: ${response.error}`, 'DELETE_PROD_TYPE_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ CONFIG: CONNECTORS ============
+
+    async getConnectors(): Promise<PaginatedResponse<TaranisConnector>> {
+      const response = await this.makeRequest('/config/connectors');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get connectors: ${response.error}`, 'GET_CONNECTORS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getConnector(connectorId: string): Promise<TaranisConnector> {
+      const response = await this.makeRequest(`/config/connectors/${connectorId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get connector: ${response.error}`, 'GET_CONNECTOR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createConnector(connectorData: Omit<TaranisConnector, 'id'>): Promise<TaranisConnector> {
+      const response = await this.makeRequest('/config/connectors', {
+        method: 'POST',
+        body: JSON.stringify(connectorData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create connector: ${response.error}`, 'CREATE_CONNECTOR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateConnector(connectorId: string, updates: Partial<TaranisConnector>): Promise<TaranisConnector> {
+      const response = await this.makeRequest(`/config/connectors/${connectorId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update connector: ${response.error}`, 'UPDATE_CONNECTOR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteConnector(connectorId: string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/connectors/${connectorId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete connector: ${response.error}`, 'DELETE_CONNECTOR_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async pullConnector(connectorId: string): Promise<any> {
+      const response = await this.makeRequest(`/config/connectors/${connectorId}/pull`, {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to pull connector: ${response.error}`, 'PULL_CONNECTOR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    // ============ CONFIG: PUBLISHERS & PRESENTERS ============
+
+    async getPublishers(): Promise<PaginatedResponse<any>> {
+      const response = await this.makeRequest('/config/publishers');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get publishers: ${response.error}`, 'GET_PUBLISHERS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getConfigPresenters(): Promise<PaginatedResponse<TaranisPresenter>> {
+      const response = await this.makeRequest('/config/presenters');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get presenters: ${response.error}`, 'GET_PRESENTERS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getPublisherPresets(): Promise<PaginatedResponse<TaranisPublisherPreset>> {
+      const response = await this.makeRequest('/config/publisher-presets');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get publisher presets: ${response.error}`, 'GET_PUB_PRESETS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getPublisherPresetsAlt(): Promise<PaginatedResponse<TaranisPublisherPreset>> {
+      const response = await this.makeRequest('/config/publishers-presets');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get publisher presets: ${response.error}`, 'GET_PUB_PRESETS_ALT_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getPublisherPreset(presetId: string): Promise<TaranisPublisherPreset> {
+      const response = await this.makeRequest(`/config/publisher-presets/${presetId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get publisher preset: ${response.error}`, 'GET_PUB_PRESET_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createPublisherPreset(presetData: Omit<TaranisPublisherPreset, 'id'>): Promise<TaranisPublisherPreset> {
+      const response = await this.makeRequest('/config/publisher-presets', {
+        method: 'POST',
+        body: JSON.stringify(presetData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create publisher preset: ${response.error}`, 'CREATE_PUB_PRESET_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updatePublisherPreset(presetId: string, updates: Partial<TaranisPublisherPreset>): Promise<TaranisPublisherPreset> {
+      const response = await this.makeRequest(`/config/publisher-presets/${presetId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update publisher preset: ${response.error}`, 'UPDATE_PUB_PRESET_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deletePublisherPreset(presetId: string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/publisher-presets/${presetId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete publisher preset: ${response.error}`, 'DELETE_PUB_PRESET_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ CONFIG: WORKERS & SCHEDULE ============
+
+    async getWorkers(): Promise<TaranisWorker[]> {
+      const response = await this.makeRequest('/config/workers');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get workers: ${response.error}`, 'GET_WORKERS_ERROR', response.status);
+      }
+      return response.data?.workers || response.data || [];
+    }
+
+    async getWorkerTypes(params?: {
+      search?: string;
+      category?: string;
+      type?: string;
+      exclude?: string;
+    }): Promise<PaginatedResponse<TaranisWorkerType>> {
+      const response = await this.makeRequest('/config/worker-types');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker types: ${response.error}`, 'GET_WORKER_TYPES_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async updateWorkerType(workerId: string, updates: any): Promise<any> {
+      const response = await this.makeRequest(`/config/worker-types/${workerId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update worker type: ${response.error}`, 'UPDATE_WORKER_TYPE_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getParameters(): Promise<Record<string, any>> {
+      const response = await this.makeRequest('/config/parameters');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get parameters: ${response.error}`, 'GET_PARAMS_ERROR', response.status);
+      }
+      return response.data || {};
+    }
+
+    async getWorkerParameters(): Promise<{ items: any[] }> {
+      const response = await this.makeRequest('/config/worker-parameters');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker parameters: ${response.error}`, 'GET_WORKER_PARAMS_ERROR', response.status);
+      }
+      return response.data || { items: [] };
+    }
+
+    async getSchedule(): Promise<TaranisScheduleTask[]> {
+      const response = await this.makeRequest('/config/schedule');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get schedule: ${response.error}`, 'GET_SCHEDULE_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async getScheduleTask(taskId: string): Promise<TaranisScheduleTask> {
+      const response = await this.makeRequest(`/config/schedule/${taskId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get schedule task: ${response.error}`, 'GET_SCHEDULE_TASK_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkersSchedule(): Promise<TaranisScheduleTask[]> {
+      const response = await this.makeRequest('/config/workers/schedule');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get workers schedule: ${response.error}`, 'GET_WORKERS_SCHEDULE_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async getWorkersTasks(): Promise<{ tasks: any[] }> {
+      const response = await this.makeRequest('/config/workers/tasks');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get workers tasks: ${response.error}`, 'GET_WORKERS_TASKS_ERROR', response.status);
+      }
+      return response.data || { tasks: [] };
+    }
+
+    async getQueueStatus(): Promise<{ queues: TaranisQueueStatus[] }> {
+      const response = await this.makeRequest('/config/workers/queue-status');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get queue status: ${response.error}`, 'GET_QUEUE_STATUS_ERROR', response.status);
+      }
+      return response.data || { queues: [] };
+    }
+
+    async calculateRefreshInterval(cron: string): Promise<string[]> {
+      const response = await this.makeRequest('/config/refresh-interval', {
+        method: 'POST',
+        body: JSON.stringify({ cron })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to calculate refresh interval: ${response.error}`, 'CALC_REFRESH_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async getTaskResults(): Promise<PaginatedResponse<TaranisTaskResult>> {
+      const response = await this.makeRequest('/config/task-results');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get task results: ${response.error}`, 'GET_TASK_RESULTS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getTaskResult(taskId: string): Promise<TaranisTaskResult> {
+      const response = await this.makeRequest(`/config/task-results/${taskId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get task result: ${response.error}`, 'GET_TASK_RESULT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteTaskResult(taskId: string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/task-results/${taskId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete task result: ${response.error}`, 'DELETE_TASK_RESULT_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ CONFIG: ACL ============
+
+    async getACLs(): Promise<PaginatedResponse<TaranisACL>> {
+      const response = await this.makeRequest('/config/acls');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get ACLs: ${response.error}`, 'GET_ACLS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getACL(aclId: number | string): Promise<TaranisACL> {
+      const response = await this.makeRequest(`/config/acls/${aclId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get ACL: ${response.error}`, 'GET_ACL_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createACL(aclData: Omit<TaranisACL, 'id'>): Promise<TaranisACL> {
+      const response = await this.makeRequest('/config/acls', {
+        method: 'POST',
+        body: JSON.stringify(aclData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create ACL: ${response.error}`, 'CREATE_ACL_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateACL(aclId: number | string, updates: Partial<TaranisACL>): Promise<TaranisACL> {
+      const response = await this.makeRequest(`/config/acls/${aclId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update ACL: ${response.error}`, 'UPDATE_ACL_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteACL(aclId: number | string): Promise<boolean> {
+      const response = await this.makeRequest(`/config/acls/${aclId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete ACL: ${response.error}`, 'DELETE_ACL_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ BOTS API (COMPLETE) ============
+
+    async getBotsList(): Promise<any[]> {
+      const response = await this.makeRequest('/bots');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get bots list: ${response.error}`, 'GET_BOTS_LIST_ERROR', response.status);
+      }
+      return response.data?.items || response.data || [];
+    }
+
+    async getBotDetail(botId: string): Promise<any> {
+      const response = await this.makeRequest(`/bots/${botId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get bot: ${response.error}`, 'GET_BOT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateBotAPI(botId: string, updates: any): Promise<any> {
+      const response = await this.makeRequest(`/bots/${botId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update bot: ${response.error}`, 'UPDATE_BOT_API_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getBotNewsItems(limit?: number): Promise<any[]> {
+      const response = await this.makeRequest('/bots/news-item');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get bot news items: ${response.error}`, 'GET_BOT_NEWS_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async getBotNewsItem(newsItemId: string): Promise<any> {
+      const response = await this.makeRequest(`/bots/news-item/${newsItemId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get bot news item: ${response.error}`, 'GET_BOT_NEWS_ITEM_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateBotNewsItem(newsItemId: string, updates: { language?: string }): Promise<any> {
+      const response = await this.makeRequest(`/bots/news-item/${newsItemId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update bot news item: ${response.error}`, 'UPDATE_BOT_NEWS_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateBotNewsItemAttributes(newsItemId: string, attributes: any[]): Promise<any> {
+      const response = await this.makeRequest(`/bots/news-item/${newsItemId}/attributes`, {
+        method: 'PUT',
+        body: JSON.stringify(attributes)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update bot news item attributes: ${response.error}`, 'UPDATE_BOT_NEWS_ATTRS_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getBotStory(storyId: string): Promise<any> {
+      const response = await this.makeRequest(`/bots/story/${storyId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get bot story: ${response.error}`, 'GET_BOT_STORY_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateBotStory(storyId: string, updates: any): Promise<any> {
+      const response = await this.makeRequest(`/bots/story/${storyId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update bot story: ${response.error}`, 'UPDATE_BOT_STORY_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getBotStoryAttributes(storyId: string): Promise<any[]> {
+      const response = await this.makeRequest(`/bots/story/${storyId}/attributes`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get bot story attributes: ${response.error}`, 'GET_BOT_STORY_ATTRS_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async patchBotStoryAttributes(storyId: string, attributes: any): Promise<any> {
+      const response = await this.makeRequest(`/bots/story/${storyId}/attributes`, {
+        method: 'PATCH',
+        body: JSON.stringify(attributes)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to patch bot story attributes: ${response.error}`, 'PATCH_BOT_STORY_ATTRS_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async groupBotStories(storyIds: string[]): Promise<any> {
+      const response = await this.makeRequest('/bots/stories/group', {
+        method: 'PUT',
+        body: JSON.stringify(storyIds)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to group bot stories: ${response.error}`, 'GROUP_BOT_STORIES_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async groupBotStoriesMultiple(storyGroups: string[][]): Promise<any> {
+      const response = await this.makeRequest('/bots/stories/group-multiple', {
+        method: 'PUT',
+        body: JSON.stringify(storyGroups)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to group multiple bot stories: ${response.error}`, 'GROUP_BOT_STORIES_MULTI_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async ungroupBotStories(newsItemIds: string[]): Promise<any> {
+      const response = await this.makeRequest('/bots/stories/ungroup', {
+        method: 'PUT',
+        body: JSON.stringify(newsItemIds)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to ungroup bot stories: ${response.error}`, 'UNGROUP_BOT_STORIES_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    // ============ ASSETS CRUD (COMPLETE) ============
+
+    async getAssets(params?: {
+      search?: string;
+      vulnerable?: boolean;
+      group?: string;
+      sort?: string;
+    }): Promise<PaginatedResponse<TaranisAsset>> {
+      const response = await this.makeRequest('/assets');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get assets: ${response.error}`, 'GET_ASSETS_ERROR', response.status);
+      }
+      return {
+        total_count: response.data?.total_count || 0,
+        items: response.data?.items || []
+      };
+    }
+
+    async getAsset(assetId: string | number): Promise<TaranisAsset> {
+      const response = await this.makeRequest(`/assets/${assetId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get asset: ${response.error}`, 'GET_ASSET_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async createAsset(assetData: Omit<TaranisAsset, 'id' | 'createdDate' | 'updatedDate'>): Promise<TaranisAsset> {
+      const response = await this.makeRequest('/assets', {
+        method: 'POST',
+        body: JSON.stringify(assetData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to create asset: ${response.error}`, 'CREATE_ASSET_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateAsset(assetId: string | number, updates: Partial<TaranisAsset>): Promise<TaranisAsset> {
+      const response = await this.makeRequest(`/assets/${assetId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update asset: ${response.error}`, 'UPDATE_ASSET_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async deleteAsset(assetId: string | number): Promise<boolean> {
+      const response = await this.makeRequest(`/assets/${assetId}`, { method: 'DELETE' });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete asset: ${response.error}`, 'DELETE_ASSET_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async updateAssetVulnerability(assetId: string | number, vulnerabilityId: string | number, solved: boolean): Promise<boolean> {
+      const response = await this.makeRequest(`/assets/${assetId}/vulnerabilities/${vulnerabilityId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ solved })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update asset vulnerability: ${response.error}`, 'UPDATE_ASSET_VULN_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ ADMIN ENDPOINTS ============
+
+    async getSystemSettings(): Promise<TaranisSystemSettings> {
+      const response = await this.makeRequest('/admin/settings');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get system settings: ${response.error}`, 'GET_SYSTEM_SETTINGS_ERROR', response.status);
+      }
+      return response.data?.settings || response.data || {};
+    }
+
+    async updateSystemSettings(settings: any): Promise<boolean> {
+      const response = await this.makeRequest('/admin/settings', {
+        method: 'PUT',
+        body: JSON.stringify(settings)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update system settings: ${response.error}`, 'UPDATE_SYSTEM_SETTINGS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async deleteAllTags(): Promise<boolean> {
+      const response = await this.makeRequest('/admin/delete-tags', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete all tags: ${response.error}`, 'DELETE_ALL_TAGS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async deleteAllStories(): Promise<boolean> {
+      const response = await this.makeRequest('/admin/delete-stories', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to delete all stories: ${response.error}`, 'DELETE_ALL_STORIES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async ungroupAllStories(): Promise<boolean> {
+      const response = await this.makeRequest('/admin/ungroup-stories', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to ungroup all stories: ${response.error}`, 'UNGROUP_ALL_STORIES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async resetDatabase(): Promise<boolean> {
+      const response = await this.makeRequest('/admin/reset-database', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to reset database: ${response.error}`, 'RESET_DATABASE_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async clearAllQueues(): Promise<boolean> {
+      const response = await this.makeRequest('/admin/clear-queues', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to clear queues: ${response.error}`, 'CLEAR_QUEUES_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async exportAllStories(includeMetadata: boolean = false): Promise<any> {
+      const response = await this.makeRequest('/admin/export-stories');
+      if (!response.success) {
+        throw new TaranisError(`Failed to export stories: ${response.error}`, 'EXPORT_STORIES_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    // ============ WORKERS API (COMPLETE) ============
+
+    async addWorkerNewsItems(newsItems: any[]): Promise<boolean> {
+      const response = await this.makeRequest('/worker/news-items', {
+        method: 'POST',
+        body: JSON.stringify(newsItems)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to add worker news items: ${response.error}`, 'ADD_WORKER_NEWS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async uploadOSINTSourceIcon(sourceId: string, icon: File | Blob): Promise<boolean> {
+      // Note: This would need FormData implementation
+      const response = await this.makeRequest(`/worker/osint-sources/${sourceId}/icon`, {
+        method: 'PUT'
+        // body would be FormData with file
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to upload icon: ${response.error}`, 'UPLOAD_ICON_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getWorkerProduct(productId: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/products/${productId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker product: ${response.error}`, 'GET_WORKER_PRODUCT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkerProductRender(productId: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/products/${productId}/render`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker product render: ${response.error}`, 'GET_WORKER_RENDER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkerPresenter(presenter: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/presenters/${presenter}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker presenter: ${response.error}`, 'GET_WORKER_PRESENTER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkerPublisher(publisher: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/publishers/${publisher}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker publisher: ${response.error}`, 'GET_WORKER_PUBLISHER_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkerConnector(connectorId: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/connectors/${connectorId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker connector: ${response.error}`, 'GET_WORKER_CONNECTOR_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkerBot(botId: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/bots/${botId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker bot: ${response.error}`, 'GET_WORKER_BOT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateWorkerBot(botId: string, updates: any): Promise<any> {
+      const response = await this.makeRequest(`/worker/bots/${botId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update worker bot: ${response.error}`, 'UPDATE_WORKER_BOT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async executePostCollectionBots(sourceId: string): Promise<any> {
+      const response = await this.makeRequest('/worker/post-collection-bots', {
+        method: 'PUT',
+        body: JSON.stringify({ source_id: sourceId })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to execute post-collection bots: ${response.error}`, 'EXEC_POST_COLLECTION_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async addWorkerStory(storyData: any): Promise<any> {
+      const response = await this.makeRequest('/worker/stories', {
+        method: 'POST',
+        body: JSON.stringify(storyData)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to add worker story: ${response.error}`, 'ADD_WORKER_STORY_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async addWorkerMISPStories(stories: any[]): Promise<any> {
+      const response = await this.makeRequest('/worker/stories/misp', {
+        method: 'POST',
+        body: JSON.stringify(stories)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to add worker MISP stories: ${response.error}`, 'ADD_WORKER_MISP_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async getWorkerTagsMap(): Promise<Record<string, any>> {
+      const response = await this.makeRequest('/worker/tags');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker tags map: ${response.error}`, 'GET_WORKER_TAGS_MAP_ERROR', response.status);
+      }
+      return response.data || {};
+    }
+
+    async updateWorkerTags(tagsMap: Record<string, string[]>): Promise<any> {
+      const response = await this.makeRequest('/worker/tags', {
+        method: 'PUT',
+        body: JSON.stringify(tagsMap)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update worker tags: ${response.error}`, 'UPDATE_WORKER_TAGS_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async dropAllWorkerTags(): Promise<boolean> {
+      const response = await this.makeRequest('/worker/drop-tags', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to drop worker tags: ${response.error}`, 'DROP_WORKER_TAGS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getWorkerWordLists(params?: {
+      search?: string;
+      usage?: string;
+      with_entries?: boolean;
+    }): Promise<any[]> {
+      const response = await this.makeRequest('/worker/word-lists');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker word lists: ${response.error}`, 'GET_WORKER_WORDLISTS_ERROR', response.status);
+      }
+      return response.data || [];
+    }
+
+    async getWorkerWordList(wordListId: string): Promise<any> {
+      const response = await this.makeRequest(`/worker/word-list/${wordListId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get worker word list: ${response.error}`, 'GET_WORKER_WORDLIST_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async updateWorkerWordList(wordListId: string, content: string | any[]): Promise<any> {
+      const response = await this.makeRequest(`/worker/word-list/${wordListId}`, {
+        method: 'PUT',
+        body: typeof content === 'string' ? content : JSON.stringify(content)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update worker word list: ${response.error}`, 'UPDATE_WORKER_WORDLIST_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    // ============ CONNECTORS/CONFLICTS ============
+
+    async getStoryConflicts(): Promise<{ conflicts: TaranisStoryConflict[] }> {
+      const response = await this.makeRequest('/connectors/conflicts/stories');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get story conflicts: ${response.error}`, 'GET_STORY_CONFLICTS_ERROR', response.status);
+      }
+      return response.data || { conflicts: [] };
+    }
+
+    async getStoryConflict(storyId: string): Promise<TaranisStoryConflict> {
+      const response = await this.makeRequest(`/connectors/conflicts/stories/${storyId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get story conflict: ${response.error}`, 'GET_STORY_CONFLICT_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async resolveStoryConflict(storyId: string, resolution: any, incomingStoryOriginal: any): Promise<boolean> {
+      const response = await this.makeRequest(`/connectors/conflicts/stories/${storyId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          resolution,
+          incoming_story_original: incomingStoryOriginal
+        })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to resolve story conflict: ${response.error}`, 'RESOLVE_STORY_CONFLICT_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getNewsItemConflicts(): Promise<{ conflicts: TaranisNewsItemConflict[] }> {
+      const response = await this.makeRequest('/connectors/conflicts/news-items');
+      if (!response.success) {
+        throw new TaranisError(`Failed to get news item conflicts: ${response.error}`, 'GET_NEWS_CONFLICTS_ERROR', response.status);
+      }
+      return response.data || { conflicts: [] };
+    }
+
+    async ingestNewsItemConflicts(newsItems: any[]): Promise<boolean> {
+      const response = await this.makeRequest('/connectors/conflicts/news-items', {
+        method: 'POST',
+        body: JSON.stringify(newsItems)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to ingest news item conflicts: ${response.error}`, 'INGEST_NEWS_CONFLICTS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async resolveNewsItemConflicts(storyIds: string[], newsItemIds: string[]): Promise<boolean> {
+      const response = await this.makeRequest('/connectors/conflicts/news-items', {
+        method: 'PUT',
+        body: JSON.stringify({
+          story_ids: storyIds,
+          news_item_ids: newsItemIds
+        })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to resolve news item conflicts: ${response.error}`, 'RESOLVE_NEWS_CONFLICTS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async getStorySummary(storyId: string): Promise<any> {
+      const response = await this.makeRequest(`/connectors/story-summary/${storyId}`);
+      if (!response.success) {
+        throw new TaranisError(`Failed to get story summary: ${response.error}`, 'GET_STORY_SUMMARY_ERROR', response.status);
+      }
+      return response.data;
+    }
+
+    async clearAllConflicts(): Promise<boolean> {
+      const response = await this.makeRequest('/connectors/conflicts/clear', {
+        method: 'POST'
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to clear conflicts: ${response.error}`, 'CLEAR_CONFLICTS_ERROR', response.status);
+      }
+      return true;
+    }
+
+    async updateLastChange(stories: string[], newsItems: string[]): Promise<boolean> {
+      const response = await this.makeRequest('/connectors/last-change', {
+        method: 'POST',
+        body: JSON.stringify({
+          stories,
+          news_items: newsItems
+        })
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to update last change: ${response.error}`, 'UPDATE_LAST_CHANGE_ERROR', response.status);
+      }
+      return true;
+    }
+
+    // ============ TASKS ============
+
+    async getTask(taskId: string): Promise<TaranisTaskResult> {
+      const response = await this.makeRequest(`/tasks/${taskId}`);
+      if (!response.success) {
+        return { id: taskId, task: '', status: 'PENDING' };
+      }
+      return response.data;
+    }
+
+    async submitTaskResult(taskResult: {
+      task_id: string;
+      result: any;
+      status: string;
+      task: string;
+    }): Promise<{ status: string }> {
+      const response = await this.makeRequest('/tasks', {
+        method: 'POST',
+        body: JSON.stringify(taskResult)
+      });
+      if (!response.success) {
+        throw new TaranisError(`Failed to submit task result: ${response.error}`, 'SUBMIT_TASK_ERROR', response.status);
+      }
+      return response.data || { status: 'submitted' };
+    }
+
     isAuthenticated(): boolean {
       return !!this.token;
     }

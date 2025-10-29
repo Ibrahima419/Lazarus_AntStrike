@@ -11,14 +11,19 @@ import { ResponsiveContainer, Cell, Tooltip } from 'recharts';
 interface SourceNode {
   id: string;
   name: string;
+  type?: string;
+  enabled?: boolean;
   alertCount: number;
   trustScore: number;
   status: 'active' | 'inactive' | 'error';
+  lastCollected?: Date;
 }
 
 interface SourceCluster {
   id: string;
   name: string;
+  alertCount?: number;
+  confidence?: number;
   sources: SourceNode[];
 }
 

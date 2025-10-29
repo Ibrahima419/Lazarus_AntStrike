@@ -161,7 +161,7 @@ export function CTIDashboardOptimized() {
           const [bots, sources, newsItems, reports, stories] = await Promise.all([
             service.getBots(),
             service.getSources(),
-            service.getNewsItems(100),
+            service.getNewsItems({ limit: 100, cybersecurity: true }),
             service.getReports(),
             service.getStories()
           ]);
@@ -925,7 +925,7 @@ export function CTIDashboardOptimized() {
                     className="w-full"
                     onClick={async () => {
                       try {
-                        const result = await service.groupStoriesWithAI();
+                        const result = await service.groupStoriesWithAI([]);
                         console.log('Stories groupées:', result);
                         alert(`✅ ${result?.groups_created || 12} groupes créés par l'IA`);
                       } catch (err) {
@@ -1183,7 +1183,7 @@ export function CTIDashboardOptimized() {
                       size="sm"
                       onClick={async () => {
                         try {
-                          const news = await service.getNewsItems(100);
+                          const news = await service.getNewsItems({ limit: 100, cybersecurity: true });
                           console.log('📊 Analyse des organisations ciblées:', news);
                           alert('✅ Analyse terminée : 8 secteurs, 34 produits, 102 CVE identifiés');
                         } catch (err) {

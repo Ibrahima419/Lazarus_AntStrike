@@ -67,7 +67,7 @@ export function IntelligenceDashboardOptimized() {
     setIsLoading(true);
     try {
       const [newsItems, stories, reports] = await Promise.all([
-        service.getNewsItems(200),
+        service.getNewsItems({ limit: 200, cybersecurity: true }),
         service.getStories(),
         service.getReports()
       ]);

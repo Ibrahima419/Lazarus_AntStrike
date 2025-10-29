@@ -72,7 +72,7 @@ export class CampaignTrackerService {
   private taranisService = getTaranisService();
   private iocExtractorService = getIOCExtractorService();
   private config: CampaignTrackerConfig;
-  private cache = new Map<string, Campaign[]>();
+  private cache = new Map<string, { data: any; timestamp: number }>();
   private cacheExpiry = 30 * 60 * 1000; // 30 minutes
 
   constructor(config?: Partial<CampaignTrackerConfig>) {

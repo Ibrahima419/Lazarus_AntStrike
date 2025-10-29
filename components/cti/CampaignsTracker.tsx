@@ -23,7 +23,7 @@ interface Campaign {
   name: string;
   description: string;
   threatActor: string;
-  status: 'active' | 'inactive' | 'dormant' | 'disrupted';
+  status: 'active' | 'inactive' | 'dormant' | 'disrupted' | 'terminated';
   severity: 'low' | 'medium' | 'high' | 'critical';
   startDate: Date;
   lastActivity: Date;
@@ -77,22 +77,22 @@ export function CampaignsTracker() {
       setIsLoading(true);
       setError(null);
       
-      console.log('🎯 Déclenchement manuel du tracking des campagnes...');
+      console.log('🎯 Déclenchement manuel de l\'extraction des campagnes...');
       
-      const { getCampaignTrackerService } = await import('./services/campaign-tracker-service');
-      const campaignTracker = getCampaignTrackerService();
+      const { getTaranisCampaignMapperService } = await import('./services/taranis-campaign-mapper');
+      const campaignMapper = getTaranisCampaignMapperService();
       
-      // Exécuter le tracking
-      const trackedCampaigns = await campaignTracker.trackCampaigns('30d');
+      // Forcer rafraîchissement cache et extraire
+      const extractionResult = await campaignMapper.extractCampaignsFromTaranis(30);
       
-      console.log(`✅ Tracking terminé: ${trackedCampaigns.length} campagnes détectées`);
+      console.log(`✅ Extraction terminée: ${extractionResult.totalCampaigns} campagnes (Active: ${extractionResult.activeCampaigns}, Dormant: ${extractionResult.dormantCampaigns})`);
       
       // Recharger les campagnes
       await loadCampaigns();
       
     } catch (error) {
-      console.error('❌ Erreur lors du tracking manuel:', error);
-      setError('Erreur lors du tracking manuel des campagnes');
+      console.error('❌ Erreur lors de l\'extraction manuelle:', error);
+      setError('Erreur lors de l\'extraction manuelle des campagnes');
     } finally {
       setIsLoading(false);
     }
@@ -103,25 +103,25 @@ export function CampaignsTracker() {
     setError(null);
     
     try {
-      // Utiliser le service de tracking des campagnes avancé
-      const { getCampaignTrackerService } = await import('./services/campaign-tracker-service');
-      const campaignTracker = getCampaignTrackerService();
+      // ✅ NOUVEAU: Utiliser le mapper Taranis natif (trending clusters + story clusters)
+      const { getTaranisCampaignMapperService } = await import('./services/taranis-campaign-mapper');
+      const campaignMapper = getTaranisCampaignMapperService();
       
-      console.log('🎯 Tracking des campagnes depuis les stories Taranis...');
+      console.log('🎯 Extraction campagnes depuis Taranis trending clusters...');
       
-      // Analyser les stories et créer des campagnes
-      const trackedCampaigns = await campaignTracker.trackCampaigns('30d');
+      // Extraire les campagnes depuis les clusters Taranis natifs
+      const extractionResult = await campaignMapper.extractCampaignsFromTaranis(30);
       
-      if (trackedCampaigns.length === 0) {
-        console.log('⚠️ Aucune campagne détectée dans les stories récentes');
+      if (extractionResult.campaigns.length === 0) {
+        console.log('⚠️ Aucune campagne détectée dans les clusters Taranis');
         setCampaigns([]);
         return;
       }
 
-      console.log(`✅ ${trackedCampaigns.length} campagnes détectées et créées`);
+      console.log(`✅ ${extractionResult.totalCampaigns} campagnes détectées (Méthode: ${extractionResult.extractionMethod})`);
       
       // Convertir vers le format attendu par le composant
-      const formattedCampaigns: Campaign[] = trackedCampaigns.map(campaign => ({
+      const formattedCampaigns: Campaign[] = extractionResult.campaigns.map(campaign => ({
         id: campaign.id,
         name: campaign.name,
         description: campaign.description,

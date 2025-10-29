@@ -1,0 +1,70 @@
+/**
+ * 🎨 Custom Scrollbars - Design Cybersec
+ * Scrollbars élégantes qui se cachent automatiquement
+ */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3); /* cyan-500/30 */
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5); /* cyan-500/50 */
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Auto-hide scrollbar (show only on hover) */
+.auto-hide-scrollbar {
+  overflow: auto;
+}
+
+.auto-hide-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.auto-hide-scrollbar:hover::-webkit-scrollbar {
+  opacity: 1;
+}
+
+.auto-hide-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.4);
+  border-radius: 3px;
+}
+
+.auto-hide-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.6);
+}
+

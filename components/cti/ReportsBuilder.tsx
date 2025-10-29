@@ -21,7 +21,7 @@ interface Report {
   id: string;
   title: string;
   description: string;
-  type: 'threat' | 'campaign' | 'ioc' | 'attribution' | 'trend';
+  type: 'threat' | 'campaign' | 'ioc' | 'attribution' | 'trend' | 'analysis' | 'executive' | 'intelligence' | 'incident' | 'alert' | 'performance';
   status: 'draft' | 'review' | 'published' | 'archived';
   severity: 'low' | 'medium' | 'high' | 'critical';
   author: string;
@@ -69,14 +69,45 @@ export function ReportsBuilder() {
     setError(null);
     
     try {
-      // Charger les report items et products depuis Taranis
-      const [reportItems, products] = await Promise.all([
-        service.getReports(),
-        service.listProducts()
-      ]);
+      // ✅ NOUVEAU: Utiliser le mapper Taranis natif pour rapports
+      const { getTaranisReportsMapperService } = await import('./services/taranis-reports-mapper');
+      const reportsMapper = getTaranisReportsMapperService();
 
-      // Transformer les report items en Reports
-      const reportsFromItems: Report[] = reportItems.map((item: any) => {
+      console.log('📄 Extraction rapports depuis Taranis (report-items + products)...');
+
+      // Extraire les rapports depuis Taranis
+      const extraction = await reportsMapper.extractReportsFromTaranis();
+
+      if (extraction.reports.length === 0) {
+        console.log('⚠️ Aucun rapport trouvé dans Taranis');
+        setReports([]);
+        return;
+      }
+
+      console.log(`✅ ${extraction.totalReports} rapports extraits (Méthode: ${extraction.extractionMethod})`);
+
+      // Enrichir avec le contenu complet
+      const enrichedReports: Report[] = await Promise.all(
+        extraction.reports.map(async (report) => {
+          // Obtenir les détails complets si nécessaire
+          const details = await reportsMapper.getReportDetails(report.id);
+          
+          return {
+            ...report,
+            content: details?.description || report.description,
+            executiveSummary: report.description.substring(0, 500) + '...',
+            keyFindings: [],
+            recommendations: [],
+            iocs: [],
+            ttp: [],
+            references: [],
+            audience: ['Security Team', 'Analysts'],
+          };
+        })
+      );
+
+      // Ancienne logique de transformation (OBSOLÈTE)
+      /* const reportsFromItems: Report[] = reportItems.map((item: any) => {
         // Extraire les tags depuis les attributs ou le contenu
         const tags = item.tags || [];
         
@@ -146,13 +177,14 @@ export function ReportsBuilder() {
         audience: ['Security Team']
       }));
 
-      // Combiner les deux sources
-      const allReports = [...reportsFromItems, ...reportsFromProducts];
-      setReports(allReports);
+      */ // Fin ancienne logique
+
+      // Utiliser les rapports enrichis
+      setReports(enrichedReports);
 
       // Sélectionner le premier rapport si aucun n'est sélectionné
-      if (allReports.length > 0 && !selectedReport) {
-        setSelectedReport(allReports[0]);
+      if (enrichedReports.length > 0 && !selectedReport) {
+        setSelectedReport(enrichedReports[0]);
       }
     } catch (err) {
       console.error('Erreur chargement rapports:', err);
@@ -182,7 +214,7 @@ export function ReportsBuilder() {
       // Récupérer les vraies données depuis Taranis
       const [stories, newsItems, bots] = await Promise.all([
         service.getStories(),
-        service.getNewsItems(50),
+        service.getNewsItems({ limit: 50, cybersecurity: true }),
         service.getBots()
       ]);
 

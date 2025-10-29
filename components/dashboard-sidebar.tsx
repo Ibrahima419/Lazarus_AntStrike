@@ -1,4 +1,4 @@
-import { Shield, BarChart3, Globe, AlertTriangle, Database, Settings, Users, FileText, Activity, Server, Target, Bug, Network, TestTube, Search, HardDrive, Map, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shield, BarChart3, Globe, AlertTriangle, Database, Settings, Users, FileText, Activity, Server, Target, Bug, Network, TestTube, Search, HardDrive, Map, MapPin, ChevronLeft, ChevronRight, Eye, Radar, TrendingUp } from 'lucide-react';
 import { Button } from './ui/button';
 import logoIcon from '../AnStrikes.svg';
 import { useState, useEffect, useRef } from 'react';
@@ -22,7 +22,13 @@ export function DashboardSidebar({ activeTab, setActiveTab }: SidebarProps) {
 
   // Nouvelles fonctionnalités qui forcent l'expand
   const newFeatures = [
+    { id: 'soc-analyst', added: '2025-10-10', forceExpand: true }, // 🆕 POC Demo - SOC View
+    { id: 'threat-intel-hub', added: '2025-10-10', forceExpand: true }, // 🆕 POC Demo - Intel Hub
+    { id: 'executive-cti', added: '2025-10-10', forceExpand: true }, // 🆕 POC Demo - Executive
+    { id: 'taranis-test-unified', added: '2025-01-08', forceExpand: true },
     { id: 'taranis', added: '2024-01-15', forceExpand: true },
+    { id: 'taranis-assess', added: '2024-01-15', forceExpand: true },
+    { id: 'taranis-assets', added: '2024-01-15', forceExpand: true },
     { id: 'threat-map', added: '2024-01-10', forceExpand: true },
     { id: 'source-map', added: '2024-01-05', forceExpand: true }
   ];
@@ -97,10 +103,20 @@ export function DashboardSidebar({ activeTab, setActiveTab }: SidebarProps) {
     // { id: 'analysis', label: 'Analysis', icon: Activity },
     { id: 'cti-platform', label: 'CTI Platform', icon: Network },
     // { id: 'source-map', label: 'Source Intelligence Map', icon: Map },
-    // { id: 'taranis', label: 'Taranis AI', icon: Server },
-    // { id: 'taranis-assess', label: 'Taranis Assess', icon: Search },
-    // { id: 'taranis-assets', label: 'Taranis Assets', icon: HardDrive },
-    // { id: 'taranis-test', label: 'Taranis Test', icon: TestTube },
+    
+    // === POC DEMO - CTI DASHBOARDS ===
+    { id: 'soc-analyst', label: 'SOC Analyst View', icon: Eye },
+    { id: 'soc-analyst-v2', label: '🆕 SOC Analyst V2 (Backend)', icon: Shield },
+    { id: 'threat-intel-hub', label: 'Threat Intel Hub', icon: Radar },
+    { id: 'executive-cti', label: 'Executive Dashboard', icon: TrendingUp },
+    
+    // === TARANIS AI INTEGRATION ===
+    { id: 'taranis', label: 'Taranis AI', icon: Server },
+    { id: 'taranis-assess', label: 'Taranis Assess', icon: Search },
+    { id: 'taranis-assets', label: 'Taranis Assets', icon: HardDrive },
+    { id: 'taranis-test-unified', label: 'Taranis Test Unified', icon: TestTube },
+    { id: 'taranis-test', label: 'Taranis Test (Legacy)', icon: Bug },
+    
     // { id: 'import-export', label: 'Import/Export', icon: Globe },
     // { id: 'reports', label: 'Reports', icon: FileText },
     // { id: 'architecture', label: 'Architecture', icon: Network },

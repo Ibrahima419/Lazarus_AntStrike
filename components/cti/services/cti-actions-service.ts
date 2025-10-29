@@ -91,28 +91,28 @@ export async function runSecurityPlaybook(type: 'apt-response' | 'ransomware-res
     'apt-response': {
       name: 'APT Response Playbook',
       steps: [
-        { name: 'Identifier IOCs', status: 'pending' as const },
-        { name: 'Bloquer IPs malveillantes', status: 'pending' as const },
-        { name: 'Analyser TTPs', status: 'pending' as const },
-        { name: 'Notifier équipe', status: 'pending' as const },
-        { name: 'Créer rapport incident', status: 'pending' as const }
+        { name: 'Identifier IOCs', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Bloquer IPs malveillantes', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Analyser TTPs', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Notifier équipe', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Créer rapport incident', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' }
       ]
     },
     'ransomware-response': {
       name: 'Ransomware Response Playbook',
       steps: [
-        { name: 'Isoler systèmes infectés', status: 'pending' as const },
-        { name: 'Bloquer domaines C2', status: 'pending' as const },
-        { name: 'Vérifier sauvegardes', status: 'pending' as const },
-        { name: 'Contacter juridique', status: 'pending' as const }
+        { name: 'Isoler systèmes infectés', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Bloquer domaines C2', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Vérifier sauvegardes', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Contacter juridique', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' }
       ]
     },
     'phishing-response': {
       name: 'Phishing Response Playbook', 
       steps: [
-        { name: 'Bloquer domaines phishing', status: 'pending' as const },
-        { name: 'Mettre à jour filtres email', status: 'pending' as const },
-        { name: 'Formation utilisateurs', status: 'pending' as const }
+        { name: 'Bloquer domaines phishing', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Mettre à jour filtres email', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' },
+        { name: 'Formation utilisateurs', status: 'pending' as 'pending' | 'running' | 'completed' | 'failed' }
       ]
     }
   };

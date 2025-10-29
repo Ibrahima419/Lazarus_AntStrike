@@ -13,9 +13,11 @@ interface SourceNode {
   id: string;
   name: string;
   type: string;
+  enabled?: boolean;
   alertCount: number;
   trustScore: number;
   status: 'active' | 'inactive' | 'error';
+  lastCollected?: Date;
   coordinates?: [number, number];
   color?: string;
 }
@@ -24,6 +26,8 @@ interface SourceCluster {
   id: string;
   name: string;
   type: string;
+  alertCount?: number;
+  confidence?: number;
   sources: SourceNode[];
 }
 
@@ -352,7 +356,7 @@ export function GeographicView({
         <div ref={mapRef} className="w-full h-[700px] rounded-lg" />
 
         {/* Custom CSS for markers */}
-        <style jsx global>{`
+        <style>{`
           .custom-leaflet-icon {
             background: none !important;
             border: none !important;
