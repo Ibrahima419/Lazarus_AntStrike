@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Bot, Check, X, Sparkles, Zap, Brain, Target } from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface AIBot {
   id: string;
@@ -94,7 +95,7 @@ export const AIBotsWidget = () => {
             <Bot className="w-6 h-6 text-purple-500" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">🤖 AI Bots</h3>
+            <h3 className="text-xl font-bold text-white">AI Bots</h3>
             <p className="text-sm text-slate-400">Loading...</p>
           </div>
         </div>
@@ -118,7 +119,7 @@ export const AIBotsWidget = () => {
             <Bot className="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">🤖 AI Bots</h3>
+            <h3 className="text-xl font-bold text-white">AI Bots</h3>
             <p className="text-sm text-red-400">Error loading data</p>
           </div>
         </div>
@@ -134,125 +135,171 @@ export const AIBotsWidget = () => {
   const enabledCount = bots.filter(b => b.enabled).length;
   const disabledCount = totalBots - enabledCount;
 
+  // Prepare data for charts
+  const statusPieData = [
+    { name: 'Enabled', value: enabledCount, fill: '#10b981' },
+    { name: 'Disabled', value: disabledCount, fill: '#6b7280' },
+  ];
+
+  // Group by type
+  const typeCounts = bots.reduce((acc: Record<string, number>, bot) => {
+    const type = bot.type || 'unknown';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const typeBarData = Object.entries(typeCounts).map(([name, value]) => ({
+    name: name.replace(/_/g, ' ').substring(0, 20),
+    value,
+    enabled: bots.filter(b => b.type === name && b.enabled).length,
+    fill: name.includes('ioc') ? '#ef4444' : name.includes('summary') ? '#8b5cf6' : name.includes('nlp') ? '#3b82f6' : '#10b981'
+  }));
+
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-purple-500/30 p-6 shadow-xl hover:border-purple-400/50 transition-all duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-500/20 rounded-lg">
-            <Bot className="w-6 h-6 text-purple-500 animate-pulse" />
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-purple-500/30 p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-500/20 rounded-lg">
+              <Bot className="w-6 h-6 text-purple-500 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">🤖 AI Bots</h3>
+              <p className="text-sm text-slate-400">
+                {enabledCount}/{totalBots} active • Auto-enrichment
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">🤖 AI Bots</h3>
-            <p className="text-sm text-slate-400">
-              {enabledCount}/{totalBots} active • Auto-enrichment
-            </p>
-          </div>
-        </div>
-        
-        {/* Status indicator */}
-        <div className="flex items-center gap-2">
-          <div className={`px-3 py-1 rounded-lg border ${
-            enabledCount === totalBots 
-              ? 'bg-green-500/10 border-green-500/30 text-green-400'
-              : enabledCount > 0
-              ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
-              : 'bg-red-500/10 border-red-500/30 text-red-400'
-          }`}>
-            <span className="text-sm font-semibold">
-              {enabledCount === totalBots ? 'All Active' : enabledCount > 0 ? 'Partial' : 'Inactive'}
-            </span>
+          
+          <div className="flex items-center gap-2">
+            <div className={`px-3 py-1 rounded-lg border ${
+              enabledCount === totalBots 
+                ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                : enabledCount > 0
+                ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}>
+              <span className="text-sm font-semibold">
+                {enabledCount === totalBots ? 'All Active' : enabledCount > 0 ? 'Partial' : 'Inactive'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bots List */}
-      <div className="space-y-2">
-        {bots.map((bot) => (
-          <div
-            key={bot.id}
-            className={`group relative flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r ${getBotColor(bot.type)} hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
-          >
-            <div className="flex items-center gap-3 flex-1">
-              {/* Bot Icon */}
-              <div className={`p-2 rounded-lg ${bot.enabled ? 'bg-white/10' : 'bg-slate-800/50'}`}>
-                {getBotIcon(bot.type)}
-              </div>
-              
-              {/* Bot Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Status Pie Chart */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-purple-500/30 p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Bot className="w-5 h-5 text-purple-400" />
+            Statut des Bots
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={statusPieData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {statusPieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Type Distribution Bar Chart */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-cyan-400" />
+            Distribution par Type
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={typeBarData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis 
+                dataKey="name" 
+                stroke="#9ca3af"
+                fontSize={10}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis stroke="#9ca3af" fontSize={12} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+                formatter={(value: any, name: string) => {
+                  if (name === 'enabled') return [`${value} enabled`, 'Enabled'];
+                  return [value, 'Total'];
+                }}
+              />
+              <Legend />
+              <Bar dataKey="value" name="Total" radius={[8, 8, 0, 0]}>
+                {typeBarData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+              <Bar dataKey="enabled" name="Enabled" fill="#10b981" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Bots List (Compact) */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-6 shadow-xl">
+        <h3 className="text-lg font-bold text-white mb-4">Liste des Bots</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {bots.slice(0, 8).map((bot) => (
+            <div
+              key={bot.id}
+              className={`group relative flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r ${getBotColor(bot.type)} hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <div className={`p-2 rounded-lg ${bot.enabled ? 'bg-white/10' : 'bg-slate-800/50'}`}>
+                  {getBotIcon(bot.type)}
+                </div>
+                <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-semibold text-white truncate">
                     {getBotShortName(bot.name)}
                   </h4>
-                  {bot.enabled && (
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    </div>
-                  )}
+                  <p className="text-xs text-slate-400 truncate">
+                    {bot.type.replace(/_/g, ' ')}
+                  </p>
                 </div>
-                <p className="text-xs text-slate-400 truncate">
-                  {bot.type.replace(/_/g, ' ')}
-                </p>
               </div>
-            </div>
-            
-            {/* Status Badge */}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-              bot.enabled 
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                : 'bg-red-500/20 text-red-400 border border-red-500/30'
-            }`}>
               {bot.enabled ? (
-                <>
-                  <Check className="w-3 h-3" />
-                  <span>Active</span>
-                </>
+                <div className="px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-lg">
+                  <Check className="w-3 h-3 text-green-400" />
+                </div>
               ) : (
-                <>
-                  <X className="w-3 h-3" />
-                  <span>Off</span>
-                </>
+                <div className="px-2 py-1 bg-slate-700/50 border border-slate-600/30 rounded-lg">
+                  <X className="w-3 h-3 text-slate-400" />
+                </div>
               )}
             </div>
-
-            {/* Hover Tooltip */}
-            {bot.description && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 border border-purple-500/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 max-w-xs">
-                <p className="text-xs text-slate-300">
-                  {bot.description}
-                </p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Footer Stats */}
-      <div className="mt-6 pt-4 border-t border-slate-700/50">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">{enabledCount}</div>
-            <div className="text-xs text-slate-400">Active</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-400">{disabledCount}</div>
-            <div className="text-xs text-slate-400">Inactive</div>
-          </div>
+          ))}
         </div>
-        
-        <div className="flex items-center justify-between text-xs text-slate-400">
-          <span>Taranis AI Engine</span>
-          <span>Auto-refresh: 2 min</span>
-        </div>
-      </div>
-
-      {/* Capabilities Note */}
-      <div className="mt-4 p-3 bg-purple-500/5 border border-purple-500/20 rounded-lg">
-        <p className="text-xs text-slate-400">
-          <span className="text-purple-400 font-semibold">💡 Capabilities:</span> IOC extraction, 
-          summarization, NLP tagging, clustering, sentiment analysis, classification
-        </p>
       </div>
     </div>
   );

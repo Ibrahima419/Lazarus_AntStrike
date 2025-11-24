@@ -18,22 +18,25 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
-  Database
+  Database,
+  ShieldCheck
 } from 'lucide-react';
 
 interface SidebarV2Props {
   activeView?: string;
   onViewChange?: (view: string) => void;
   collapsed?: boolean;
+  userRole?: string;
 }
 
 export function SidebarV2({
   activeView = 'soc-analyst',
   onViewChange,
-  collapsed: controlledCollapsed
+  collapsed: controlledCollapsed,
+  userRole
 }: SidebarV2Props) {
   const [localCollapsed, setLocalCollapsed] = useState(true);
-  
+
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : localCollapsed;
   const setCollapsed = controlledCollapsed !== undefined ? () => {} : setLocalCollapsed;
 
@@ -53,27 +56,6 @@ export function SidebarV2({
       color: 'blue'
     },
     {
-      id: 'threat-intel',
-      label: 'Threat Intel',
-      icon: Radar,
-      badge: null,
-      color: 'purple'
-    },
-    {
-      id: 'executive',
-      label: 'Executive',
-      icon: TrendingUp,
-      badge: null,
-      color: 'green'
-    },
-    {
-      id: 'analytics',
-      label: 'Analytics',
-      icon: BarChart3,
-      badge: null,
-      color: 'orange'
-    },
-    {
       id: 'alerts',
       label: 'Alertes',
       icon: Bell,
@@ -86,6 +68,14 @@ export function SidebarV2({
       icon: FileText,
       badge: null,
       color: 'yellow'
+    },
+    {
+      id: 'administration',
+      label: 'Administration',
+      icon: ShieldCheck,
+      badge: null,
+      color: 'red',
+      adminOnly: true
     },
     {
       id: 'team',
@@ -103,23 +93,38 @@ export function SidebarV2({
     }
   ];
 
+  // Filter menu items based on user role
+  const visibleMenuItems = menuItems.filter(item => {
+    if (item.adminOnly && userRole !== 'admin') {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div
       className={`
         bg-slate-900/50 backdrop-blur-xl border-r border-white/10
-        transition-all duration-300 flex flex-col
+        transition-all duration-300 flex flex-col 
         ${isCollapsed ? 'w-20' : 'w-64'}
       `}
     >
       {/* Logo */}
-      <div className="p-4 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-            <Shield className="w-7 h-7 text-white" />
-          </div>
+      <div className="p-6 border-b border-white/10">
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src="/AnStrikes.svg"
+            alt="AntStrike Logo"
+            className="w-30 h-30 object-contain"
+            onError={(e) => {
+              // Fallback to PNG if SVG fails
+              const target = e.target as HTMLImageElement;
+              target.src = '/Ant1.png';
+            }}
+          />
           {!isCollapsed && (
-            <div>
-              <h2 className="font-bold text-white text-lg">AntStrike</h2>
+            <div className="text-center">
+              <h2 className="font-bold text-white text-xl">AntStrike</h2>
               <p className="text-xs text-slate-400">CTI Platform</p>
             </div>
           )}
@@ -128,7 +133,7 @@ export function SidebarV2({
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeView === item.id;
 
@@ -202,7 +207,7 @@ export function SidebarV2({
         <Button
           variant="outline"
           size="sm"
-          className="w-full border-white/20 text-white hover:bg-white/10"
+          className="w-full border-white/20 text-blue hover:bg-white/10"
           onClick={() => setCollapsed(!isCollapsed)}
         >
           {isCollapsed ? (
@@ -218,4 +223,6 @@ export function SidebarV2({
     </div>
   );
 }
+
+
 

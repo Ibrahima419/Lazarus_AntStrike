@@ -40,6 +40,8 @@ model Tenant {
   mispEvents      MISPEvent[]
   cveVulnerabilities CVEVulnerability[]
   osintFeeds      OSINTFeed[]
+  osintSourceGroups OSINTSourceGroup[]
+  osintSources    OSINTSource[]
   darkWebItems    DarkWebItem[]
   honeypotLogs    HoneypotLog[]
   iocHistory      IOCHistory[]
@@ -614,9 +616,80 @@ model CVEVulnerability {
 }
 
 // ============================================
-// OSINT Feeds
+// OSINT Sources (Taranis-style)
 // ============================================
 
+model OSINTSourceGroup {
+  id              String   @id @default(uuid())
+  tenantId        String
+  name            String
+  description     String?
+  color           String?
+  default         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sources         OSINTSource[]
+
+  @@index([tenantId])
+  @@unique([tenantId, name])
+  @@map("osint_source_groups")
+}
+
+model OSINTSource {
+  id              String   @id @default(uuid())
+  tenantId        String
+  groupId         String?
+
+  name            String
+  description     String?
+
+  // Source configuration
+  type            String   // rss, api, scraper, etc.
+  url             String
+  method          String   @default("GET")
+  headers         Json     @default("{}")
+  parameters      Json     @default("{}")
+  authentication  Json     @default("{}") // api_key, basic_auth, oauth, etc.
+
+  // Data extraction
+  dataPath        String?  // JSON path or CSS selector
+  itemSelector    String?  // For HTML scraping
+  dateFormat      String?
+  datePath        String?
+
+  // Processing
+  enabled         Boolean  @default(true)
+  schedule        String   @default("0 */6 * * *") // Cron expression
+  priority        Int      @default(1)
+
+  // Status
+  lastCollected   DateTime?
+  lastSuccess     DateTime?
+  lastError       String?
+  itemsCollected  Int      @default(0)
+  errorCount      Int      @default(0)
+
+  // Configuration
+  config          Json     @default("{}")
+  tags            Json     @default("[]")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  group           OSINTSourceGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([groupId])
+  @@index([type])
+  @@index([enabled])
+  @@index([priority])
+  @@map("osint_sources")
+}
+
+// Legacy OSINT Feeds (keep for backward compatibility)
 model OSINTFeed {
   id              String   @id @default(uuid())
   tenantId        String
@@ -632,9 +705,9 @@ model OSINTFeed {
   config          Json     @default("{}")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
+
   @@index([tenantId])
   @@index([feedType])
   @@index([enabled])

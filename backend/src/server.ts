@@ -13,6 +13,8 @@ import dotenv from 'dotenv';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/error.middleware';
 import { notFoundHandler } from './middleware/not-found.middleware';
+import { authenticate } from './middleware/auth.middleware';
+import { hasPermission, requireAdmin, authenticateWithPermissions } from './middleware/rbac.middleware';
 
 // Routes - Named exports (with {})
 import { authRoutes } from './routes/auth.routes';
@@ -35,7 +37,6 @@ import stixRoutes from './routes/stix.routes';
 import taxiiRoutes from './routes/taxii.routes';
 import mispRoutes from './routes/misp.routes';
 import cveRoutes from './routes/cve.routes';
-import osintFeedsRoutes from './routes/osint-feeds.routes';
 import darkwebRoutes from './routes/darkweb.routes';
 import honeypotRoutes from './routes/honeypot.routes';
 import threatFeedsRoutes from './routes/threat-feeds.routes';
@@ -143,28 +144,30 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // ===================================
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/tenants', tenantRoutes);
-app.use('/api/threats', threatRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/cases', caseRoutes);
-app.use('/api/ioc', iocRoutes);
-app.use('/api/iocs', iocRoutes); // Alias pour compatibilité frontend
-app.use('/api/playbooks', playbookRoutes);
-app.use('/api/correlation', correlationRoutes);
-app.use('/api/metrics', metricsRoutes);
-app.use('/api/taranis', taranisRoutes);  // 🚀 TOUS les endpoints Taranis !
-app.use('/api/analysis', analysisRoutes);  // 🔬 Analysis & Correlation
+
+// Protected routes - require authentication
+app.use('/api/tenants', authenticate, requireAdmin, tenantRoutes);
+app.use('/api/threats', authenticate, threatRoutes);
+app.use('/api/alerts', authenticate, alertRoutes);
+app.use('/api/reports', authenticate, reportRoutes);
+app.use('/api/cases', authenticate, caseRoutes);
+app.use('/api/ioc', authenticate, iocRoutes);
+app.use('/api/iocs', authenticate, iocRoutes); // Alias pour compatibilité frontend
+app.use('/api/playbooks', authenticate, playbookRoutes);
+app.use('/api/correlation', authenticate, correlationRoutes);
+app.use('/api/metrics', authenticate, metricsRoutes);
+app.use('/api/taranis', authenticate, taranisRoutes);  // 🚀 TOUS les endpoints Taranis !
+app.use('/api/analysis', authenticate, analysisRoutes);  // 🔬 Analysis & Correlation
 // Service 1: Collecte & Agrégation Routes
-app.use('/api/stix', stixRoutes);  // 📦 STIX 2.1 Parser & Export
-app.use('/taxii', taxiiRoutes);  // 📡 TAXII 2.1 Server
-app.use('/api/misp', mispRoutes);  // 🔄 MISP Bidirectional Sync
-app.use('/api/cve', cveRoutes);  // 🔐 CVE Enrichment (NVD + CIRCL)
-app.use('/api/osint-feeds', osintFeedsRoutes);  // 📰 OSINT Feeds Auto-Import
-app.use('/api/darkweb', darkwebRoutes);  // 🕵️ Dark Web Monitoring
-app.use('/api/honeypots', honeypotRoutes);  // 🍯 Honeypots Integration
-app.use('/api/threat-feeds', threatFeedsRoutes);  // 🌐 Threat Feeds (AlienVault OTX, etc.)
-app.use('/api/collection', collectionRoutes);  // 📡 Collection & Agrégation (Service 1)
+app.use('/api/stix', authenticate, stixRoutes);  // 📦 STIX 2.1 Parser & Export
+app.use('/taxii', authenticate, taxiiRoutes);  // 📡 TAXII 2.1 Server
+app.use('/api/misp', authenticate, mispRoutes);  // 🔄 MISP Bidirectional Sync
+app.use('/api/cve', authenticate, cveRoutes);  // 🔐 CVE Enrichment (NVD + CIRCL)
+  // 📰 OSINT Feeds Auto-Import
+app.use('/api/darkweb', authenticate, darkwebRoutes);  // 🕵️ Dark Web Monitoring
+app.use('/api/honeypots', authenticate, honeypotRoutes);  // 🍯 Honeypots Integration
+app.use('/api/threat-feeds', authenticate, threatFeedsRoutes);  // 🌐 Threat Feeds (AlienVault OTX, etc.)
+app.use('/api/collection', authenticate, collectionRoutes);  // 📡 Collection & Agrégation (Service 1)
 app.use('/webhooks', webhookRoutes);  // No /api prefix for webhooks
 
 // ===================================

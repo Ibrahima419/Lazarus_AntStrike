@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Newspaper, Calendar, Link as LinkIcon, Tag } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface NewsItem {
   id: string;
@@ -88,106 +89,145 @@ export const NewsItemsTimelineWidget = () => {
     });
   };
 
+  // Prepare data for charts
+  const sourceCounts = newsItems.reduce((acc: Record<string, number>, item) => {
+    const source = item.osint_source?.name || 'Unknown';
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {});
+
+  const sourceBarData = Object.entries(sourceCounts)
+    .map(([name, value]) => ({
+      name: name.length > 20 ? name.substring(0, 20) + '...' : name,
+      value,
+      fill: '#6366f1'
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
+
+  // Time series data (last 24 hours by hour)
+  const now = Date.now();
+  const hoursAgo = Array.from({ length: 24 }, (_, i) => {
+    const hour = new Date(now - i * 60 * 60 * 1000);
+    return hour.toISOString().split('T')[0] + 'T' + String(hour.getHours()).padStart(2, '0');
+  }).reverse();
+
+  const timeSeriesData = hoursAgo.map(hourStr => {
+    const hour = new Date(hourStr);
+    const count = newsItems.filter(item => {
+      const itemDate = new Date(item.collected);
+      return itemDate.getHours() === hour.getHours() && 
+             itemDate.toDateString() === hour.toDateString();
+    }).length;
+    return {
+      time: hour.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      count
+    };
+  });
+
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-indigo-500/30 p-6 shadow-xl hover:border-indigo-400/50 transition-all duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-500/20 rounded-lg">
-            <Newspaper className="w-6 h-6 text-indigo-500 animate-pulse" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">📰 OSINT News Feed</h3>
-            <p className="text-sm text-slate-400">Latest articles • {totalCount} today</p>
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-indigo-500/30 p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-500/20 rounded-lg">
+              <Newspaper className="w-6 h-6 text-indigo-500 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">📰 OSINT News Feed</h3>
+              <p className="text-sm text-slate-400">Latest articles • {totalCount} today</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Timeline */}
-      <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-        {newsItems.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-slate-400">No news items available</p>
+      {/* Charts Grid */}
+      {newsItems.length === 0 ? (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-12 text-center">
+          <p className="text-slate-400">No news items available</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Time Series Line Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-indigo-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-indigo-400" />
+              Activité (24 dernières heures)
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={timeSeriesData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="time" 
+                  stroke="#9ca3af"
+                  fontSize={10}
+                  interval="preserveStartEnd"
+                />
+                <YAxis stroke="#9ca3af" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="count" 
+                  stroke="#6366f1" 
+                  strokeWidth={2}
+                  dot={{ fill: '#6366f1', r: 4 }}
+                  name="News Items"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        ) : (
-          newsItems.map((item, index) => (
-            <div
-              key={item.id}
-              className="group relative flex gap-4 p-3 bg-slate-800/30 hover:bg-slate-800/50 border border-slate-700/50 hover:border-indigo-500/50 rounded-lg transition-all duration-300"
-            >
-              {/* Timeline Dot */}
-              <div className="flex flex-col items-center">
-                <div className="w-2 h-2 bg-indigo-500 rounded-full mt-2"></div>
-                {index < newsItems.length - 1 && (
-                  <div className="w-0.5 flex-1 bg-gradient-to-b from-indigo-500/50 to-transparent mt-1"></div>
-                )}
-              </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                {/* Title */}
-                <h4 className="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 mb-2">
-                  {item.title}
-                </h4>
-
-                {/* Meta */}
-                <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{formatDate(item.collected)}</span>
-                  </div>
-                  
-                  <span className="text-slate-600">•</span>
-                  
-                  <div className="flex items-center gap-1">
-                    <Tag className="w-3 h-3" />
-                    <span className="truncate max-w-[150px]">{item.osint_source?.name || 'Unknown'}</span>
-                  </div>
-                </div>
-
-                {/* Link */}
-                {item.link && (
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <LinkIcon className="w-3 h-3" />
-                    <span>Open Source</span>
-                  </a>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+          {/* Source Distribution Bar Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-cyan-400" />
+              Top Sources OSINT
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={sourceBarData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis type="number" stroke="#9ca3af" fontSize={12} />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  stroke="#9ca3af"
+                  fontSize={10}
+                  width={120}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Bar dataKey="value" name="Articles" radius={[0, 8, 8, 0]} fill="#06b6d4">
+                  {sourceBarData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-slate-700/50">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-4">
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>Real-time OSINT Collection</span>
           <span>Auto-refresh: 3 min</span>
         </div>
       </div>
-
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.5);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(99, 102, 241, 0.5);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(99, 102, 241, 0.7);
-        }
-      `}</style>
     </div>
   );
 };

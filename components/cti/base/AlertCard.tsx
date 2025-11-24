@@ -21,6 +21,8 @@ import { formatDistanceToNow, differenceInMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { Alert } from '../../../src/services/api/alert.service';
 
+export type { Alert };
+
 interface AlertCardProps {
   alert: Alert;
   onAcknowledge?: (id: string) => void;

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Shield, Search, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface IOC {
   id: string;
@@ -98,105 +99,179 @@ export const IOCAnalysisWidget = () => {
     }
   };
 
+  // Prepare data for charts
+  const typeCounts = iocs.reduce((acc: Record<string, number>, ioc) => {
+    const type = ioc.iocType || 'unknown';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const typePieData = Object.entries(typeCounts).map(([name, value]) => ({
+    name: name.toUpperCase(),
+    value,
+    fill: name.includes('ip') ? '#3b82f6' : name.includes('domain') ? '#8b5cf6' : name.includes('hash') ? '#ef4444' : '#10b981'
+  }));
+
+  const threatLevelCounts = iocs.reduce((acc: Record<string, number>, ioc) => {
+    const level = ioc.threatLevel || 'unknown';
+    acc[level] = (acc[level] || 0) + 1;
+    return acc;
+  }, {});
+
+  const threatBarData = Object.entries(threatLevelCounts).map(([name, value]) => ({
+    name: name.toUpperCase(),
+    value,
+    fill: name === 'high' ? '#ef4444' : name === 'medium' ? '#f59e0b' : '#10b981'
+  }));
+
+  const topIOCs = iocs
+    .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
+    .slice(0, 10)
+    .map(ioc => ({
+      name: ioc.iocValue.length > 20 ? ioc.iocValue.substring(0, 20) + '...' : ioc.iocValue,
+      confidence: ioc.confidence || 0,
+      type: ioc.iocType
+    }));
+
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-orange-500/30 p-6 shadow-xl hover:border-orange-400/50 transition-all duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-500/20 rounded-lg">
-            <Shield className="w-5 h-5 text-orange-500" />
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-orange-500/30 p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-500/20 rounded-lg">
+              <Shield className="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">🎯 IOC Analysis</h3>
+              <p className="text-xs text-slate-400">{iocs.length} enriched IOCs</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">🎯 IOC Analysis</h3>
-            <p className="text-xs text-slate-400">{iocs.length} enriched IOCs</p>
+          <button className="p-2 bg-orange-500/20 hover:bg-orange-500/30 rounded-lg transition-colors">
+            <Search className="w-4 h-4 text-orange-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Charts Grid */}
+      {iocs.length === 0 ? (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-12 text-center">
+          <AlertTriangle className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+          <p className="text-sm text-slate-400">No IOCs enriched yet</p>
+          <p className="text-xs text-slate-500 mt-1">IOCs will appear here after enrichment</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Type Distribution Pie Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-orange-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-orange-400" />
+              Distribution par Type
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={typePieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {typePieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Threat Level Bar Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-red-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+              Niveau de Menace
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={threatBarData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#9ca3af"
+                  fontSize={12}
+                />
+                <YAxis stroke="#9ca3af" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Bar dataKey="value" name="IOCs" radius={[8, 8, 0, 0]}>
+                  {threatBarData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-        <button className="p-2 bg-orange-500/20 hover:bg-orange-500/30 rounded-lg transition-colors">
-          <Search className="w-4 h-4 text-orange-400" />
-        </button>
-      </div>
+      )}
 
-      {/* IOCs List */}
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
-        {iocs.length === 0 ? (
-          <div className="text-center py-6">
-            <AlertTriangle className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-            <p className="text-sm text-slate-400">No IOCs enriched yet</p>
-            <p className="text-xs text-slate-500 mt-1">IOCs will appear here after enrichment</p>
-          </div>
-        ) : (
-          iocs.map((ioc) => (
-            <div
-              key={ioc.id}
-              className="group p-3 bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/20 hover:border-orange-500/40 rounded-lg transition-all duration-300 cursor-pointer"
-            >
-              <div className="flex items-start gap-3">
-                {/* IOC Icon */}
-                <div className="text-xl mt-0.5">{getIOCIcon(ioc.iocType)}</div>
-                
-                {/* IOC Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-sm font-semibold text-white group-hover:text-orange-400 transition-colors truncate">
-                      {ioc.iocValue}
-                    </h4>
-                    {ioc.threatLevel && (
-                      <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${getThreatLevelColor(ioc.threatLevel)}`}>
-                        {ioc.threatLevel}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <span className="uppercase font-medium">{ioc.iocType}</span>
-                    {ioc.confidence !== undefined && (
-                      <>
-                        <span>•</span>
-                        <span>Confidence: {ioc.confidence}%</span>
-                      </>
-                    )}
-                    {ioc.source && (
-                      <>
-                        <span>•</span>
-                        <span>{ioc.source}</span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Enriched Data */}
-                  {ioc.enrichedData && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {ioc.enrichedData.country && (
-                        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">
-                          {ioc.enrichedData.country}
-                        </span>
-                      )}
-                      {ioc.enrichedData.asn && (
-                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">
-                          AS{ioc.enrichedData.asn}
-                        </span>
-                      )}
-                      {ioc.enrichedData.malware && ioc.enrichedData.malware.length > 0 && (
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">
-                          {ioc.enrichedData.malware.length} malware
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Button */}
-                <button className="opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-orange-500/20 hover:bg-orange-500/30 rounded-lg">
-                  <ExternalLink className="w-4 h-4 text-orange-400" />
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      {/* Top IOCs Confidence Chart */}
+      {iocs.length > 0 && (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Search className="w-5 h-5 text-cyan-400" />
+            Top 10 IOCs par Confiance
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={topIOCs} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis type="number" domain={[0, 100]} stroke="#9ca3af" fontSize={12} />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                stroke="#9ca3af"
+                fontSize={10}
+                width={120}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+                formatter={(value: any) => [`${value}%`, 'Confidence']}
+              />
+              <Bar dataKey="confidence" name="Confidence %" radius={[0, 8, 8, 0]} fill="#06b6d4">
+                {topIOCs.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.confidence >= 80 ? '#10b981' : entry.confidence >= 50 ? '#f59e0b' : '#ef4444'} 
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Footer */}
-      <div className="mt-4 pt-4 border-t border-slate-700/50">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-4">
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>Threat Intelligence</span>
           <button className="text-orange-400 hover:text-orange-300 transition-colors">

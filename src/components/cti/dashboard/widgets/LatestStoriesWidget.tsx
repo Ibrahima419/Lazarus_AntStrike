@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { FileText, ExternalLink, Tag, Clock } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface Story {
   id: string;
@@ -96,96 +97,182 @@ export const LatestStoriesWidget = () => {
     return `${days}d ago`;
   };
 
+  // Prepare data for charts
+  const relevanceDistribution = stories.reduce((acc: Record<number, number>, story) => {
+    const rel = story.relevance || 0;
+    acc[rel] = (acc[rel] || 0) + 1;
+    return acc;
+  }, {});
+
+  const relevanceBarData = Object.entries(relevanceDistribution).map(([relevance, count]) => ({
+    name: `R${relevance}`,
+    value: count,
+    fill: parseInt(relevance) >= 4 ? '#ef4444' : parseInt(relevance) >= 3 ? '#f59e0b' : parseInt(relevance) >= 2 ? '#eab308' : '#3b82f6'
+  }));
+
+  // Time series data (last 7 days)
+  const now = Date.now();
+  const daysAgo = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(now - i * 24 * 60 * 60 * 1000);
+    return date.toISOString().split('T')[0];
+  }).reverse();
+
+  const timeSeriesData = daysAgo.map(date => {
+    const count = stories.filter(s => {
+      const storyDate = new Date(s.created).toISOString().split('T')[0];
+      return storyDate === date;
+    }).length;
+    return {
+      date: new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+      stories: count,
+      important: stories.filter(s => {
+        const storyDate = new Date(s.created).toISOString().split('T')[0];
+        return storyDate === date && s.important;
+      }).length
+    };
+  });
+
+  const statusData = [
+    { name: 'Read', value: stories.filter(s => s.read).length, fill: '#10b981' },
+    { name: 'Unread', value: stories.filter(s => !s.read).length, fill: '#3b82f6' },
+    { name: 'Important', value: stories.filter(s => s.important).length, fill: '#ef4444' },
+  ];
+
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-blue-500/30 p-6 shadow-xl hover:border-blue-400/50 transition-all duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-500/20 rounded-lg">
-            <FileText className="w-6 h-6 text-blue-500" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">📖 Latest Threats</h3>
-            <p className="text-sm text-slate-400">From OSINT Sources • {totalCount} total</p>
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-blue-500/30 p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <FileText className="w-6 h-6 text-blue-500" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">📖 Latest Threats</h3>
+              <p className="text-sm text-slate-400">From OSINT Sources • {totalCount} total</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Stories List */}
-      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-        {stories.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-slate-400">No stories available</p>
+      {/* Charts Grid */}
+      {stories.length === 0 ? (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-12 text-center">
+          <p className="text-slate-400">No stories available</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Time Series Area Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-blue-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-400" />
+              Évolution (7 derniers jours)
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={timeSeriesData}>
+                <defs>
+                  <linearGradient id="colorStories" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorImportant" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#9ca3af"
+                  fontSize={10}
+                />
+                <YAxis stroke="#9ca3af" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Area type="monotone" dataKey="stories" stroke="#3b82f6" fillOpacity={1} fill="url(#colorStories)" name="Stories" />
+                <Area type="monotone" dataKey="important" stroke="#ef4444" fillOpacity={1} fill="url(#colorImportant)" name="Important" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-        ) : (
-          stories.map((story) => (
-            <div
-              key={story.id}
-              className="group p-4 bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all duration-300 cursor-pointer"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h4 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors line-clamp-2 flex-1">
-                  {story.title}
-                </h4>
-                
-                {/* Badges */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {story.important && (
-                    <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-bold rounded border border-red-500/30">
-                      IMPORTANT
-                    </span>
-                  )}
-                  
-                  <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${getSeverityColor(story.relevance)}`}>
-                    R{story.relevance}
-                  </span>
-                </div>
-              </div>
 
-              {/* Meta */}
-              <div className="flex items-center gap-4 text-xs text-slate-400">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{formatTimeAgo(story.created)}</span>
-                </div>
-                
-                {story.in_reports_count > 0 && (
-                  <div className="flex items-center gap-1">
-                    <FileText className="w-3 h-3" />
-                    <span>{story.in_reports_count} reports</span>
-                  </div>
-                )}
-                
-                {!story.read && (
-                  <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded">
-                    NEW
-                  </span>
-                )}
-              </div>
+          {/* Relevance Distribution Bar Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-orange-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-orange-400" />
+              Distribution par Pertinence
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={relevanceBarData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#9ca3af"
+                  fontSize={12}
+                />
+                <YAxis stroke="#9ca3af" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Bar dataKey="value" name="Stories" radius={[8, 8, 0, 0]}>
+                  {relevanceBarData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
-              {/* Actions */}
-              <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
-                  <ExternalLink className="w-3 h-3" />
-                  View Details
-                </button>
-                <span className="text-slate-600">•</span>
-                <button className="text-xs text-green-400 hover:text-green-300 transition-colors">
-                  Create Case
-                </button>
-                <span className="text-slate-600">•</span>
-                <button className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
-                  Enrich with AI
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      {/* Status Pie Chart */}
+      {stories.length > 0 && (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-green-500/30 p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-green-400" />
+            Statut des Stories
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={statusData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {statusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-slate-700/50">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-4">
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>Taranis AI • OSINT Aggregation</span>
           <button className="text-cyan-400 hover:text-cyan-300 transition-colors">

@@ -52,7 +52,7 @@ export function useFilteredAlerts(alerts: Alert[] | undefined | null, filters: F
         a =>
           a.title.toLowerCase().includes(searchLower) ||
           a.summary.toLowerCase().includes(searchLower) ||
-          a.iocs.some(ioc => ioc.toLowerCase().includes(searchLower))
+          a.iocs.some((ioc: string) => ioc.toLowerCase().includes(searchLower))
       );
     }
 

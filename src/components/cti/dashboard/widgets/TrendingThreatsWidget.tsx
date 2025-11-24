@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Flame, TrendingUp } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { taranisDashboardNativeService, TrendingCluster } from '../../../../services/api/taranis-dashboard-native.service';
 
 interface TrendingTag {
   name: string;
@@ -12,33 +14,11 @@ interface TagTypeCluster {
   tags: TrendingTag[];
 }
 
-interface TrendingClustersResponse {
-  success: boolean;
-  data: {
-    items: TagTypeCluster[];
-  };
-}
-
 export const TrendingThreatsWidget = () => {
-  const { data, isLoading, error } = useQuery<TrendingClustersResponse>({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['trending-clusters'],
     queryFn: async () => {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/taranis/dashboard/trending-clusters?days=30`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch trending clusters');
-      }
-      
-      return response.json();
+      return await taranisDashboardNativeService.getTrendingClusters({ days: 30 });
     },
     refetchInterval: 300000, // Refresh every 5 minutes
     retry: 3
@@ -90,12 +70,35 @@ export const TrendingThreatsWidget = () => {
     );
   }
 
-  const tagTypes = data?.data?.items || [];
+  const tagTypes = (data?.data as any)?.items || (Array.isArray(data?.data) ? data.data : []);
+
+  // Prepare data for charts
+  const topTags = tagTypes
+    .flatMap((type: TagTypeCluster) => (type.tags || []).map((tag: TrendingTag) => ({ ...tag, category: type.name })))
+    .sort((a: { size: number }, b: { size: number }) => b.size - a.size)
+    .slice(0, 10);
+
+  const categoryBarData = tagTypes.map((type: TagTypeCluster) => ({
+    name: type.name,
+    value: type.size,
+    tagsCount: type.tags?.length || 0,
+    fill: type.name === 'cves' ? '#ef4444' : type.name === 'Location' ? '#3b82f6' : type.name === 'Organization' ? '#8b5cf6' : '#10b981'
+  }));
+
+  const topTagsBarData = topTags.map((tag: TrendingTag & { category: string }, idx: number) => ({
+    name: tag.name.length > 15 ? tag.name.substring(0, 15) + '...' : tag.name,
+    value: tag.size,
+    category: tag.category,
+    fill: idx % 2 === 0 ? '#ef4444' : '#f59e0b'
+  }));
+
+  const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#06b6d4'];
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl hover:border-cyan-400/50 transition-all duration-300">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-red-500/20 rounded-lg animate-pulse">
             <Flame className="w-6 h-6 text-red-500" />
@@ -109,73 +112,106 @@ export const TrendingThreatsWidget = () => {
         <div className="flex items-center gap-2 px-3 py-1 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
           <TrendingUp className="w-4 h-4 text-cyan-400" />
           <span className="text-sm text-cyan-400 font-semibold">
-            {tagTypes.reduce((acc, type) => acc + (type.tags?.length || 0), 0)} trends
+            {tagTypes.reduce((acc: number, type: TagTypeCluster) => acc + (type.tags?.length || 0), 0)} trends
           </span>
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="space-y-6">
+      {/* Charts Grid */}
         {tagTypes.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-slate-400">No trending threats in the last 30 days</p>
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-12 text-center">
+          <p className="text-slate-400 text-lg">No trending threats in the last 30 days</p>
             <p className="text-sm text-slate-500 mt-2">This is a good sign! 🎉</p>
           </div>
         ) : (
-          tagTypes.map((tagType) => (
-            <div key={tagType.name}>
-              {/* Tag Type Header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
-                <h4 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider">
-                  {tagType.name}
-                </h4>
-                <span className="text-xs text-slate-500">({tagType.size} total)</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Category Distribution Bar Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Flame className="w-5 h-5 text-red-400" />
+              Distribution par Catégorie
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={categoryBarData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis type="number" stroke="#9ca3af" fontSize={12} />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  stroke="#9ca3af"
+                  fontSize={11}
+                  width={100}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  formatter={(value: any, name: string) => {
+                    if (name === 'tagsCount') return [`${value} tags`, 'Tags'];
+                    return [value, 'Total'];
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="value" name="Total Stories" radius={[0, 8, 8, 0]}>
+                  {categoryBarData.map((entry: { fill: string }, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
               </div>
               
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2">
-                {tagType.tags?.slice(0, 10).map((tag, idx) => (
-                  <div
-                    key={`${tag.name}-${idx}`}
-                    className="group relative px-3 py-2 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/30 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">
-                        {tag.name}
-                      </span>
-                      <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-bold rounded-full">
-                        {tag.size}
-                      </span>
-                    </div>
-                    
-                    {/* Tooltip on hover */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 border border-cyan-500/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                      <p className="text-xs text-slate-300">
-                        {tag.size} stories mentioning "{tag.name}"
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                
-                {tagType.tags && tagType.tags.length > 10 && (
-                  <div className="px-3 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
-                    <span className="text-sm text-slate-400">
-                      +{tagType.tags.length - 10} more
-                    </span>
-                  </div>
-                )}
+          {/* Top Tags Bar Chart */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-orange-500/30 p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-orange-400" />
+              Top 10 Menaces
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topTagsBarData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#9ca3af"
+                  fontSize={10}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis 
+                  stroke="#9ca3af"
+                  fontSize={12}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  formatter={(value: any, payload: any) => [
+                    `${value} stories`,
+                    payload?.[0]?.payload?.category || 'Unknown'
+                  ]}
+                />
+                <Bar dataKey="value" name="Stories" radius={[8, 8, 0, 0]}>
+                  {topTagsBarData.map((entry: { fill: string }, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
               </div>
             </div>
-          ))
         )}
-      </div>
 
       {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-slate-700/50">
-        <div className="flex items-center justify-between text-xs text-slate-400">
-          <span>Powered by Taranis AI • Story Clustering</span>
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-4">
+        <div className="flex items-center justify-end text-xs text-slate-400">
           <span>Auto-refresh: 5 min</span>
         </div>
       </div>

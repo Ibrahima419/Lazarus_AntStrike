@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { useAuthStore } from './src/store/auth.store';
 import { useThreats } from './src/hooks/use-threats';
 import { useAlerts, useCreateAlert, useAcknowledgeAlert, useResolveAlert } from './src/hooks/use-alerts';
 import { useThreatStats } from './src/hooks/use-threat-stats';
@@ -13,13 +14,16 @@ import { useFilteredThreats, useFilteredAlerts } from './src/hooks/use-filtered-
 // Layout V2
 import { HeaderV2 } from './components/cti/layout/HeaderV2';
 import { SidebarV2 } from './components/cti/layout/SidebarV2';
+import { ProtectedRoute } from './src/components/protected-route';
 
 // Dashboards
 import { SOCAnalystDashboardV2 } from './components/cti/dashboards-v2/SOCAnalystDashboardV2';
+import { TaranisDashboard } from './src/components/cti/dashboards-v2/TaranisDashboard';
 
 // Pages
 import { ReportsPage } from './src/pages/Reports';
 import { CollectionHub } from './src/pages/CollectionHub';
+import { OSINTSourcesManager } from './src/pages/admin/OSINTSourcesManager';
 
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
@@ -36,6 +40,9 @@ export default function App() {
   const [activeView, setActiveView] = useState('soc-analyst');
   const [filters, setFilters] = useState<Filters>({});
   const [selectedThreat, setSelectedThreat] = useState<any>(null);
+
+  // Get user from auth store
+  const { user } = useAuthStore();
 
   // Data from backend via React Query
   const { data: threatsData, isLoading: threatsLoading, refetch: refetchThreats } = useThreats({ limit: 100 });
@@ -88,13 +95,15 @@ export default function App() {
 
   const getViewTitle = () => {
     switch (activeView) {
-      case 'soc-analyst': return '🛡️ SOC Analyst Dashboard Ultimate';
-      case 'collection': return '🚀 Collection Hub';
+      case 'soc-analyst': return 'SOC Analyst Dashboard Ultimate';
+      case 'taranis-dashboard': return 'Taranis Intelligence Dashboard';
+      case 'collection': return 'Collection Hub';
       case 'threat-intel': return 'Threat Intelligence Hub';
       case 'executive': return 'Executive Dashboard';
       case 'analytics': return 'Analytics Dashboard';
       case 'alerts': return 'Alerts Management';
       case 'reports': return 'Reports Center';
+      case 'administration': return 'Administration';
       case 'team': return 'Team Management';
       case 'assets': return 'Assets Management';
       default: return 'Dashboard';
@@ -120,150 +129,39 @@ export default function App() {
       return <CollectionHub />;
     }
 
+    // Administration - Gestion des sources OSINT (Admin seulement)
+    if (activeView === 'administration') {
+      return (
+        <ProtectedRoute requirePermission="osint:configure">
+          <OSINTSourcesManager />
+        </ProtectedRoute>
+      );
+    }
+
     // SOC Analyst Dashboard V2 - ULTIMATE avec toutes les features SOC !
     if (activeView === 'soc-analyst') {
       return <SOCAnalystDashboardV2 />;
     }
 
-    // Pour les autres vues (en développement), afficher dashboard SOC Analyst basique
+    // Taranis Dashboard - Intelligence avancée OSINT
+    if (activeView === 'taranis-dashboard') {
+      return <TaranisDashboard />;
+    }
+
+    // Default fallback - ancien dashboard
     return (
-      <>
-        {/* Stats Cards */}
-        <div className="p-6 border-b border-white/10 bg-slate-900/30">
-          <div className="grid grid-cols-4 gap-4">
-            <StatsCard
-              icon={<AlertTriangle className="w-6 h-6" />}
-              label="Menaces Critiques"
-              value={stats.critical}
-              trend="+12%"
-              color="red"
-              loading={threatsLoading}
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredThreats.slice(0, 9).map((threat) => (
+            <ThreatCard
+              key={threat.id}
+              threat={threat}
+              onCreateAlert={handleCreateAlert}
+              variant="compact"
             />
-            <StatsCard
-              icon={<Shield className="w-6 h-6" />}
-              label="Menaces Élevées"
-              value={stats.high}
-              trend="+8%"
-              color="orange"
-              loading={threatsLoading}
-            />
-            <StatsCard
-              icon={<Activity className="w-6 h-6" />}
-              label="Alertes Actives"
-              value={filteredAlerts?.filter(a => a.status !== 'RESOLVED').length || 0}
-              trend="+5%"
-              color="blue"
-              loading={alertsLoading}
-            />
-            <StatsCard
-              icon={<Bell className="w-6 h-6" />}
-              label="Non Lues"
-              value={stats.unread}
-              color="cyan"
-              loading={threatsLoading}
-            />
-          </div>
-
-          <div className="mt-4">
-            <FilterBar
-              filters={filters}
-              onChange={setFilters}
-              showSeverity={true}
-              showStatus={true}
-              showPriority={true}
-            />
-          </div>
+          ))}
         </div>
-
-        {/* Content */}
-        <div className="p-6">
-          <div className="grid grid-cols-12 gap-6">
-            {/* Threats List */}
-            <div className="col-span-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">
-                  Menaces ({filteredThreats.length})
-                </h2>
-                <Badge className="bg-cyan-600 text-white">
-                  Total: {totalThreats}
-                </Badge>
-              </div>
-
-              {threatsLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-32 bg-slate-800 rounded-lg"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredThreats.length === 0 ? (
-                <div className="text-center py-12 text-slate-400">
-                  <Shield className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Aucune menace trouvée</p>
-                  <p className="text-sm">Ajustez vos filtres</p>
-                </div>
-              ) : (
-                <div className="space-y-4 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
-                  {filteredThreats.slice(0, 50).map((threat) => (
-                    <ThreatCard
-                      key={threat.id}
-                      threat={threat}
-                      onCreateAlert={handleCreateAlert}
-                      onSelect={setSelectedThreat}
-                      selected={selectedThreat?.id === threat.id}
-                      expandable={true}
-                      variant="full"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Alerts Panel */}
-            <div className="col-span-4">
-              <div className="sticky top-24">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Bell className="w-5 h-5" />
-                    Alertes ({filteredAlerts?.length || 0})
-                  </h2>
-                  <Badge className="bg-red-600 text-white">
-                    {newAlertsCount} nouvelles
-                  </Badge>
-                </div>
-
-                {alertsLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="h-40 bg-slate-800 rounded-lg"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : !filteredAlerts || filteredAlerts.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400">
-                    <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Aucune alerte</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-                    {filteredAlerts.map((alert) => (
-                      <AlertCard
-                        key={alert.id}
-                        alert={alert}
-                        onAcknowledge={(id) => acknowledgeAlert.mutate(id)}
-                        onResolve={(id) => resolveAlert.mutate(id)}
-                        compact={false}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
+      </div>
     );
   };
 
@@ -274,6 +172,7 @@ export default function App() {
         activeView={activeView}
         onViewChange={setActiveView}
         collapsed={true}
+        userRole={user?.role}
       />
 
       {/* Main Content avec Header */}

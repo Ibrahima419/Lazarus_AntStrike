@@ -8,6 +8,7 @@ import axios from 'axios';
 import { prisma } from '../config/database';
 import { UnauthorizedError, NotFoundError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { UserRole, Permission, ROLE_PERMISSIONS } from '../types/permissions';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret';
@@ -29,10 +30,23 @@ interface RegisterData {
 
 export class AuthService {
   /**
+   * Get permissions for a role
+   */
+  static getPermissionsForRole(role: UserRole): Permission[] {
+    return ROLE_PERMISSIONS[role] || [];
+  }
+
+  /**
    * Générer tokens JWT
    */
-  static generateTokens(userId: string, tenantId: string): AuthTokens {
-    const payload = { userId, tenantId };
+  static generateTokens(userId: string, tenantId: string, role: string, email: string): AuthTokens {
+    const payload = {
+      userId,
+      tenantId,
+      email,
+      role,
+      permissions: this.getPermissionsForRole(role as any)
+    };
 
     const accessToken = jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN
@@ -116,7 +130,7 @@ export class AuthService {
       });
 
       // 5. Générer tokens
-      const tokens = this.generateTokens(user.id, tenant.id);
+      const tokens = this.generateTokens(user.id, tenant.id, user.role, user.email);
 
       return {
         ...tokens,
@@ -125,6 +139,7 @@ export class AuthService {
           name: user.name,
           email: user.email,
           role: user.role,
+          permissions: this.getPermissionsForRole(user.role as any),
           tenant: {
             id: tenant.id,
             name: tenant.name,
@@ -293,7 +308,7 @@ export class AuthService {
     });
 
     // Générer tokens
-    const tokens = this.generateTokens(user.id, user.tenantId);
+    const tokens = this.generateTokens(user.id, user.tenantId, user.role, user.email);
 
     return {
       ...tokens,
@@ -302,6 +317,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        permissions: this.getPermissionsForRole(user.role as any),
         tenant: {
           id: user.tenant.id,
           name: user.tenant.name,
@@ -360,7 +376,7 @@ export class AuthService {
     }
 
     // Générer nouveaux tokens
-    const tokens = this.generateTokens(user.id, user.tenantId);
+    const tokens = this.generateTokens(user.id, user.tenantId, user.role, user.email);
 
     return {
       ...tokens,
@@ -369,6 +385,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        permissions: this.getPermissionsForRole(user.role as any),
         tenant: {
           id: user.tenant.id,
           name: user.tenant.name,
@@ -396,6 +413,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      permissions: this.getPermissionsForRole(user.role as any),
       tenant: {
         id: user.tenant.id,
         name: user.tenant.name,

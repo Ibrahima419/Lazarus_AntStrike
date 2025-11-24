@@ -1,0 +1,23 @@
+HTTP/1.1 500 Internal Server Error
+Content-Security-Policy: default-src 'self';script-src 'self' 'unsafe-inline';style-src 'self' 'unsafe-inline';img-src 'self' data: https:;connect-src 'self' http://localhost:3000;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin, Accept-Encoding
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Length: 1080
+ETag: W/"438-/7z5tQ92YGIpRqeG+dWWloX/35o"
+Date: Thu, 20 Nov 2025 22:03:18 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"error":{"status":500,"message":"Internal Server Error","stack":"SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\bmd tech\\Documents\\AntStrike-CTI\\AntStrike CTI\\backend\\node_modules\\body-parser\\lib\\types\\json.js:92:19)\n    at C:\\Users\\bmd tech\\Documents\\AntStrike-CTI\\AntStrike CTI\\backend\\node_modules\\body-parser\\lib\\read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:211:14)\n    at invokeCallback (C:\\Users\\bmd tech\\Documents\\AntStrike-CTI\\AntStrike CTI\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\bmd tech\\Documents\\AntStrike-CTI\\AntStrike CTI\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\bmd tech\\Documents\\AntStrike-CTI\\AntStrike CTI\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:518:28)\n    at IncomingMessage.emit (node:domain:489:12)\n    at endReadableNT (node:internal/streams/readable:1698:12)"}}

@@ -84,7 +84,7 @@ export function HeaderV2({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-blue hover:bg-white/10"
                 onClick={onRefresh}
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -98,7 +98,7 @@ export function HeaderV2({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-white/20 text-white hover:bg-white/10 relative"
+                  className="border-white/20 text-blue   hover:bg-white/10 relative"
                 >
                   <Bell className="w-4 h-4" />
                   {notificationCount > 0 && (

@@ -39,10 +39,11 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  permissions: string[];
   tenant: {
     id: string;
     name: string;
-    slug: string;
+    slug?: string;
     plan: string;
     status: string;
     trialEndsAt?: string;

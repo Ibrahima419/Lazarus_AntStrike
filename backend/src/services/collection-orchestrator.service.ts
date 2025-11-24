@@ -7,7 +7,6 @@
 import { logger } from '../utils/logger';
 import { TaranisService } from './taranis.service';
 import { MISPClientService } from './misp-client.service';
-import { OSINTFeedsService } from './osint-feeds.service';
 import { CVEEnrichmentService } from './cve-enrichment.service';
 import { collectionQueue } from '../queues/collection.queue';
 
