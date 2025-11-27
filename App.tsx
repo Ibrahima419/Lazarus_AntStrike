@@ -7,8 +7,7 @@
 import { useState } from 'react';
 import { useAuthStore } from './src/store/auth.store';
 import { useThreats } from './src/hooks/use-threats';
-import { useAlerts, useCreateAlert, useAcknowledgeAlert, useResolveAlert } from './src/hooks/use-alerts';
-import { useThreatStats } from './src/hooks/use-threat-stats';
+import { useAlerts } from './src/hooks/use-alerts';
 import { useFilteredThreats, useFilteredAlerts } from './src/hooks/use-filtered-data';
 
 // Layout V2
@@ -18,7 +17,6 @@ import { ProtectedRoute } from './src/components/protected-route';
 
 // Dashboards
 import { SOCAnalystDashboardV2 } from './components/cti/dashboards-v2/SOCAnalystDashboardV2';
-import { TaranisDashboard } from './src/components/cti/dashboards-v2/TaranisDashboard';
 
 // Pages
 import { ReportsPage } from './src/pages/Reports';
@@ -27,19 +25,12 @@ import { OSINTSourcesManager } from './src/pages/admin/OSINTSourcesManager';
 
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
-import { AlertCard } from './components/cti/base/AlertCard';
-import { StatsCard } from './components/cti/base/StatsCard';
-import { FilterBar, type Filters } from './components/cti/base/FilterBar';
+import { type Filters } from './components/cti/base/FilterBar';
 
-// UI
-import { Badge } from './components/ui/badge';
-import { AlertTriangle, Shield, Activity, Bell } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function App() {
   const [activeView, setActiveView] = useState('soc-analyst');
   const [filters, setFilters] = useState<Filters>({});
-  const [selectedThreat, setSelectedThreat] = useState<any>(null);
 
   // Get user from auth store
   const { user } = useAuthStore();
@@ -48,45 +39,14 @@ export default function App() {
   const { data: threatsData, isLoading: threatsLoading, refetch: refetchThreats } = useThreats({ limit: 100 });
   const { data: alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useAlerts();
 
-  // Mutations
-  const createAlert = useCreateAlert();
-  const acknowledgeAlert = useAcknowledgeAlert();
-  const resolveAlert = useResolveAlert();
 
   // Computed data
   const threats = threatsData?.items || [];
   const totalThreats = threatsData?.counts?.total_count || 0;
-  const stats = useThreatStats(threats);
   const filteredThreats = useFilteredThreats(threats, filters);
   const filteredAlerts = useFilteredAlerts(alerts, filters);
   const newAlertsCount = filteredAlerts?.filter(a => a.status === 'NEW').length || 0;
 
-  // Handlers
-  const handleCreateAlert = async (threat: any) => {
-    const loadingToast = toast.loading('Création de l\'alerte...');
-    
-    try {
-      const result = await createAlert.mutateAsync({
-        storyId: threat.id,
-        severity: threat.relevance >= 4 ? 'CRITICAL' : threat.relevance >= 3 ? 'HIGH' : 'MEDIUM',
-        priority: threat.relevance >= 4 ? 'P0' : 'P1',
-        category: 'OTHER',
-        title: threat.title,
-        summary: threat.summary || threat.description || 'Threat importée depuis Taranis',
-        iocs: []
-      });
-      
-      toast.success('Alert créée avec succès !', {
-        id: loadingToast,
-        description: `Priority: ${threat.relevance >= 4 ? 'P0' : 'P1'} • SLA: ${threat.relevance >= 4 ? '1h' : '4h'}`,
-      });
-    } catch (error: any) {
-      toast.error('Erreur lors de la création', {
-        id: loadingToast,
-        description: error.response?.data?.error?.message || 'Une erreur est survenue'
-      });
-    }
-  };
 
   const handleRefreshAll = () => {
     refetchThreats();
@@ -96,7 +56,6 @@ export default function App() {
   const getViewTitle = () => {
     switch (activeView) {
       case 'soc-analyst': return 'SOC Analyst Dashboard Ultimate';
-      case 'taranis-dashboard': return 'Taranis Intelligence Dashboard';
       case 'collection': return 'Collection Hub';
       case 'threat-intel': return 'Threat Intelligence Hub';
       case 'executive': return 'Executive Dashboard';
@@ -143,10 +102,6 @@ export default function App() {
       return <SOCAnalystDashboardV2 />;
     }
 
-    // Taranis Dashboard - Intelligence avancée OSINT
-    if (activeView === 'taranis-dashboard') {
-      return <TaranisDashboard />;
-    }
 
     // Default fallback - ancien dashboard
     return (
@@ -156,7 +111,6 @@ export default function App() {
             <ThreatCard
               key={threat.id}
               threat={threat}
-              onCreateAlert={handleCreateAlert}
               variant="compact"
             />
           ))}

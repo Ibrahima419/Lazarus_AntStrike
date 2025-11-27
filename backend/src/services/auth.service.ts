@@ -143,7 +143,8 @@ export class AuthService {
           tenant: {
             id: tenant.id,
             name: tenant.name,
-            plan: tenant.plan
+            plan: tenant.plan,
+            isActive: tenant.isActive
           }
         }
       };
@@ -389,7 +390,8 @@ export class AuthService {
         tenant: {
           id: user.tenant.id,
           name: user.tenant.name,
-          plan: user.tenant.plan
+          plan: user.tenant.plan,
+          isActive: user.tenant.isActive
         }
       }
     };

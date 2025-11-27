@@ -59,7 +59,7 @@ export const TrendingThreatsWidget = () => {
             <Flame className="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">🔥 Trending Threats</h3>
+            <h3 className="text-xl font-bold text-white">Trending Threats</h3>
             <p className="text-sm text-red-400">Error loading data</p>
           </div>
         </div>
@@ -96,27 +96,7 @@ export const TrendingThreatsWidget = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/20 rounded-lg animate-pulse">
-            <Flame className="w-6 h-6 text-red-500" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">🔥 Trending Threats</h3>
-            <p className="text-sm text-slate-400">Last 30 days • AI-Detected</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 px-3 py-1 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-          <TrendingUp className="w-4 h-4 text-cyan-400" />
-          <span className="text-sm text-cyan-400 font-semibold">
-            {tagTypes.reduce((acc: number, type: TagTypeCluster) => acc + (type.tags?.length || 0), 0)} trends
-          </span>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Charts Grid */}
         {tagTypes.length === 0 ? (
@@ -209,12 +189,7 @@ export const TrendingThreatsWidget = () => {
             </div>
         )}
 
-      {/* Footer */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-4">
-        <div className="flex items-center justify-end text-xs text-slate-400">
-          <span>Auto-refresh: 5 min</span>
-        </div>
-      </div>
+      
     </div>
   );
 };

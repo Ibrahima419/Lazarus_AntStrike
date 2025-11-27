@@ -159,16 +159,6 @@ export function HeaderV2({
                         </Badge>
                       </div>
 
-                      {user?.tenant.status === 'TRIAL' && user?.tenant.trialEndsAt && (
-                        <div className="mt-2 p-2 bg-cyan-500/10 border border-cyan-500/30 rounded text-xs text-cyan-300">
-                          Essai expire dans{' '}
-                          {Math.ceil(
-                            (new Date(user.tenant.trialEndsAt).getTime() - Date.now()) /
-                              (1000 * 60 * 60 * 24)
-                          )}{' '}
-                          jours
-                        </div>
-                      )}
                     </div>
 
                     {/* Menu Items */}

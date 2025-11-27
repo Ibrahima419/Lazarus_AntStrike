@@ -24,12 +24,12 @@ export interface AuthResponse {
     name: string;
     email: string;
     role: string;
+    permissions: string[];
     tenant: {
       id: string;
       name: string;
       plan: string;
-      status: string;
-      trialEndsAt?: string;
+      isActive: boolean;
     };
   };
 }
@@ -43,10 +43,9 @@ export interface User {
   tenant: {
     id: string;
     name: string;
-    slug?: string;
+    domain?: string;
     plan: string;
-    status: string;
-    trialEndsAt?: string;
+    isActive: boolean;
   };
 }
 

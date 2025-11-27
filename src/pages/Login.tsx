@@ -53,9 +53,11 @@ export function LoginPage() {
         <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl border border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
           {/* Logo & Title */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
-              <Shield className="w-12 h-12 text-white" />
-            </div>
+            <img
+              src="public\AnStrikes.svg"
+              alt="AntStrike CTI Logo"
+              className="w-32 h-auto mx-auto mb-4"
+            />
             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
               AntStrike CTI
             </h1>
