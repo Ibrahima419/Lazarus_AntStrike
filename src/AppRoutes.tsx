@@ -7,18 +7,20 @@ import { LoginPage } from './pages/Login';
 import { RegisterPage } from './pages/Register';
 import { ProtectedRoute } from './components/protected-route';
 import App from '../App';
+import { LandingPage } from './components/landing/LandingPage';
 
 export function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected routes - Main app */}
         <Route
-          path="/*"
+          path="/app/*"
           element={
             <ProtectedRoute>
               <App />
