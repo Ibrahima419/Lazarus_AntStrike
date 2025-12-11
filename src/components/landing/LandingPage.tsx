@@ -4,6 +4,7 @@ import { HeroSection } from './HeroSection';
 import { PartnersTicker } from './PartnersTicker';
 import { BentoGridFeatures } from './BentoGridFeatures';
 import { ServicesSection } from './ServicesSection';
+import { HumanFirewallSection } from './HumanFirewallSection';
 import { CallToAction } from './CallToAction';
 
 export const LandingPage: React.FC = () => {
@@ -13,6 +14,7 @@ export const LandingPage: React.FC = () => {
             <PartnersTicker />
             <BentoGridFeatures />
             <ServicesSection />
+            <HumanFirewallSection />
             <CallToAction />
         </LandingLayout>
     );
