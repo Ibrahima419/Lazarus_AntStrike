@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, ShieldAlert, FileSearch, Users } from 'lucide-react';
+import { Database, ShieldAlert, Smartphone, FileCheck } from 'lucide-react';
 
 const SERVICES = [
     {
@@ -9,21 +9,21 @@ const SERVICES = [
         color: 'blue'
     },
     {
-        title: 'SOC Managé & Surveillance',
-        description: 'Surveillance 24/7 par nos experts analystes. Nous gérons le bruit, vous vous concentrez sur le signal.',
-        icon: ShieldAlert,
+        title: 'Fraude Mobile Money',
+        description: 'Détection avancée des fraudes SIM Swap et Phishing ciblant les transactions mobiles.',
+        icon: Smartphone,
         color: 'red'
     },
     {
-        title: 'Investigation Numérique',
-        description: 'Investigations approfondies sur les incidents. Analyse des causes racines et collecte de preuves.',
-        icon: FileSearch,
+        title: 'Conformité & Audit',
+        description: 'Outils et rapports automatisés pour votre conformité CDP (Sénégal) et BCEAO.',
+        icon: FileCheck,
         color: 'purple'
     },
     {
-        title: 'Protection de Marque',
-        description: 'Défendez votre réputation. Suppression instantanée des sites de phishing et faux profils sociaux.',
-        icon: Users,
+        title: 'SOC Managé',
+        description: 'Surveillance 24/7 par nos experts basés à Dakar. Nous gérons le bruit, vous gardez le contrôle.',
+        icon: ShieldAlert,
         color: 'green'
     }
 ];
@@ -37,7 +37,7 @@ export const ServicesSection: React.FC = () => {
                         Nos <span className="text-purple-500">Services</span>
                     </h2>
                     <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                        Des solutions de sécurité complètes adaptées aux besoins de votre organisation.
+                        Des solutions de sécurité adaptées aux défis de l'Afrique de l'Ouest.
                     </p>
                 </div>
 

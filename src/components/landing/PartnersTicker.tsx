@@ -1,15 +1,15 @@
 import React from 'react';
 
 const PARTNERS = [
-    { name: 'Tether', logo: '/logoGreen.svg', color: '#009393' },
-    { name: 'MISP', color: '#e3342f' },
-    { name: 'MITRE', color: '#005b94' },
+    { name: 'CDP Sénégal', color: '#00853F' }, // Senegalese Green
+    { name: 'BCEAO', color: '#FDEF42' },      // Senegalese Yellow (approx)
     { name: 'ANSSI', color: '#003399' },
     { name: 'FIRST', color: '#f5a623' },
     { name: 'OpenCTI', color: '#4a90e2' },
+    { name: 'MISP', color: '#e3342f' },
+    { name: 'MITRE', color: '#005b94' },
     { name: 'TheHive', color: '#f8e71c' },
-    { name: 'Cortex', color: '#50e3c2' },
-    { name: 'AlienVault', color: '#9013fe' },
+    { name: 'Tether', logo: '/logoGreen.svg', color: '#009393' },
 ];
 
 export const PartnersTicker: React.FC = () => {

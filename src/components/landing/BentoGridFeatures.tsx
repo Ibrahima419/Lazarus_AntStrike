@@ -50,9 +50,9 @@ export const BentoGridFeatures: React.FC = () => {
                         <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
                             <Globe className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Capteurs Globaux</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">Veille Régionale</h3>
                         <p className="text-slate-400 text-sm">
-                            Télémétrie en temps réel provenant de +50 pays. Détection instantanée des anomalies.
+                            Télémétrie ciblée sur l'Afrique de l'Ouest et +50 pays. Détection des menaces locales spécifiques.
                         </p>
                         <div className="absolute bottom-4 right-4 opacity-20 group-hover:opacity-40 transition-opacity">
                             <Globe className="w-24 h-24 text-purple-500" />

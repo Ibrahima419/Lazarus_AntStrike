@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Play, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Play, ShieldCheck, MapPin, Globe2 } from 'lucide-react';
 
 export const HeroSection: React.FC = () => {
     return (
@@ -14,18 +14,17 @@ export const HeroSection: React.FC = () => {
 
                     {/* Title */}
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight">
-                        <span className="block text-white">L'Avenir de la</span>
+                        <span className="block text-white">La Cyber-Défense</span>
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 animate-gradient-x">
-                            Cyber Threat Intelligence
+                            Pour l'Afrique de l'Ouest
                         </span>
                     </h1>
 
                     {/* Subtitle */}
                     <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                        Anticipez les attaques avant qu'elles ne surviennent. AntStrike combine
-                        <span className="text-white font-semibold"> collecte OSINT avancée</span>,
-                        <span className="text-white font-semibold"> surveillance du Dark Web</span>, et
-                        <span className="text-white font-semibold"> analyse par IA</span> pour neutraliser les menaces instantanément.
+                        Protégez vos transactions Mobile Money et vos données sensibles.
+                        AntStrike combine <span className="text-white font-semibold">Intelligence Artificielle</span> et
+                        <span className="text-white font-semibold"> Conformité CDP</span> pour une sécurité souveraine.
                     </p>
 
                     {/* CTA Buttons */}
@@ -35,6 +34,9 @@ export const HeroSection: React.FC = () => {
                             <span className="flex items-center gap-2">
                                 Démarrer l'Essai Gratuit <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </span>
+                        </button>
+                        <button className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 backdrop-blur-sm transition-all flex items-center gap-2">
+                            <Play className="w-4 h-4 fill-current" /> Voir la Démo
                         </button>
                     </div>
 
@@ -61,15 +63,15 @@ export const HeroSection: React.FC = () => {
                     <div className="flex flex-wrap justify-center gap-8 text-slate-500 text-sm font-medium mt-16">
                         <div className="flex items-center gap-2">
                             <ShieldCheck className="w-5 h-5 text-green-500" />
-                            <span>Certifié SOC 2 Type II</span>
+                            <span>Conforme CDP Sénégal</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-blue-500" />
-                            <span>Conforme RGPD</span>
+                            <MapPin className="w-5 h-5 text-blue-500" />
+                            <span>Support Local à Dakar</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-purple-500" />
-                            <span>Chiffrement Militaire</span>
+                            <Globe2 className="w-5 h-5 text-purple-500" />
+                            <span>Zone UEMOA</span>
                         </div>
                     </div>
                 </div>
