@@ -3,26 +3,26 @@ import { Database, ShieldAlert, FileSearch, Users } from 'lucide-react';
 
 const SERVICES = [
     {
-        title: 'Threat Intelligence Feeds',
-        description: 'Curated, high-fidelity feeds integrated directly into your SIEM/SOAR. STIX/TAXII compatible.',
+        title: 'Flux Threat Intel',
+        description: 'Flux curés haute fidélité intégrés directement dans votre SIEM/SOAR. Compatible STIX/TAXII.',
         icon: Database,
         color: 'blue'
     },
     {
-        title: 'Managed SOC & Monitoring',
-        description: '24/7 surveillance by our expert analysts. We handle the noise, you focus on the signal.',
+        title: 'SOC Managé & Surveillance',
+        description: 'Surveillance 24/7 par nos experts analystes. Nous gérons le bruit, vous vous concentrez sur le signal.',
         icon: ShieldAlert,
         color: 'red'
     },
     {
-        title: 'Digital Forensics',
-        description: 'Deep dive investigations into incidents. Root cause analysis and evidence collection.',
+        title: 'Investigation Numérique',
+        description: 'Investigations approfondies sur les incidents. Analyse des causes racines et collecte de preuves.',
         icon: FileSearch,
         color: 'purple'
     },
     {
-        title: 'Brand Protection',
-        description: 'Defend your reputation. Takedown phishing sites and fake social media profiles instantly.',
+        title: 'Protection de Marque',
+        description: 'Défendez votre réputation. Suppression instantanée des sites de phishing et faux profils sociaux.',
         icon: Users,
         color: 'green'
     }
@@ -34,10 +34,10 @@ export const ServicesSection: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                        Our <span className="text-purple-500">Services</span>
+                        Nos <span className="text-purple-500">Services</span>
                     </h2>
                     <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                        Comprehensive security solutions tailored to your organization's needs.
+                        Des solutions de sécurité complètes adaptées aux besoins de votre organisation.
                     </p>
                 </div>
 
@@ -55,7 +55,7 @@ export const ServicesSection: React.FC = () => {
                                 {service.description}
                             </p>
                             <a href="#" className="inline-flex items-center gap-2 mt-6 text-sm font-medium text-white hover:text-blue-400 transition-colors">
-                                Learn more <span className="text-lg">→</span>
+                                En savoir plus <span className="text-lg">→</span>
                             </a>
                         </div>
                     ))}

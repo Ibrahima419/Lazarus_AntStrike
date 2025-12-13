@@ -11,10 +11,10 @@ import { useState } from 'react';
 const TRAINING_MODULES = [
     {
         id: 1,
-        title: "Phishing Detection Masterclass",
+        title: "Masterclass Détection Phishing",
         duration: "12 min",
-        level: "Beginner",
-        description: "Learn to spot sophisticated phishing attempts in your inbox.",
+        level: "Débutant",
+        description: "Apprenez à repérer les tentatives de phishing sophistiquées dans votre boîte mail.",
         // Mettez le chemin de votre video ici (ex: "/videos/phishing.mp4")
         videoUrl: "#",
         // Mettez le chemin de votre thumbnail ici (ex: "/images/phishing-thumb.jpg")
@@ -22,19 +22,19 @@ const TRAINING_MODULES = [
     },
     {
         id: 2,
-        title: "Social Engineering Survival Guide",
+        title: "Guide Survie Ingénierie Sociale",
         duration: "18 min",
-        level: "Intermediate",
-        description: "Understand how hackers manipulate psychology to gain access.",
+        level: "Intermédiaire",
+        description: "Comprenez comment les hackers manipulent la psychologie pour obtenir un accès.",
         videoUrl: "#",
         thumbnail: "bg-gradient-to-br from-blue-900/50 to-cyan-900/50"
     },
     {
         id: 3,
-        title: "Secure Remote Work Habits",
+        title: "Habitudes Télétravail Sécurisé",
         duration: "15 min",
-        level: "Advanced",
-        description: "Best practices for securing your home office environment.",
+        level: "Avancé",
+        description: "Meilleures pratiques pour sécuriser votre environnement de bureau à domicile.",
         videoUrl: "#",
         thumbnail: "bg-gradient-to-br from-purple-900/50 to-pink-900/50"
     }
@@ -55,13 +55,13 @@ export const HumanFirewallSection = () => {
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-6">
                         <Users className="w-4 h-4" />
-                        <span>Human-Centric Security</span>
+                        <span>Sécurité Centrée sur l'Humain</span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                        Build Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Human Firewall</span>
+                        Construisez votre <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Pare-feu Humain</span>
                     </h2>
                     <p className="text-lg text-slate-400">
-                        Technology is only half the battle. Transform your employees from targets into your organization's strongest line of defense with our immersive training academy.
+                        La technologie n'est que la moitié de la bataille. Transformez vos employés de cibles potentielles en première ligne de défense avec notre académie immersive.
                     </p>
                 </div>
 
@@ -70,18 +70,18 @@ export const HumanFirewallSection = () => {
                     {[
                         {
                             icon: Brain,
-                            title: "Cognitive Training",
-                            desc: "AI-driven content that adapts to user behavior and learning pace."
+                            title: "Formation Cognitive",
+                            desc: "Contenu piloté par l'IA qui s'adapte au comportement et au rythme d'apprentissage."
                         },
                         {
                             icon: Target,
-                            title: "Real-world Simulations",
-                            desc: "Safe phishing simulations to test readiness without the risk."
+                            title: "Simulations Réelles",
+                            desc: "Simulations de phishing sécurisées pour tester la préparation sans risque."
                         },
                         {
                             icon: Award,
-                            title: "Gamified Progress",
-                            desc: "Earn badges and certifications to compete and stay engaged."
+                            title: "Progression Ludifiée",
+                            desc: "Gagnez des badges et certifications pour rester engagé et compétitif."
                         }
                     ].map((feature, idx) => (
                         <div key={idx} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800 transition-colors">
@@ -99,10 +99,10 @@ export const HumanFirewallSection = () => {
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="text-2xl font-bold text-white flex items-center gap-2">
                             <Play className="w-6 h-6 text-cyan-400" />
-                            Featured Training Modules
+                            Modules de Formation à la Une
                         </h3>
                         <button className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors">
-                            View All Courses →
+                            Voir tous les cours →
                         </button>
                     </div>
 
@@ -130,9 +130,9 @@ export const HumanFirewallSection = () => {
                                 {/* Content Area */}
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${module.level === 'Beginner' ? 'bg-green-500/10 text-green-400' :
-                                                module.level === 'Intermediate' ? 'bg-yellow-500/10 text-yellow-400' :
-                                                    'bg-red-500/10 text-red-400'
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${module.level === 'Débutant' ? 'bg-green-500/10 text-green-400' :
+                                            module.level === 'Intermédiaire' ? 'bg-yellow-500/10 text-yellow-400' :
+                                                'bg-red-500/10 text-red-400'
                                             }`}>
                                             {module.level}
                                         </span>
@@ -153,10 +153,10 @@ export const HumanFirewallSection = () => {
                 <div className="text-center">
                     <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all transform hover:-translate-y-1 flex items-center gap-2 mx-auto">
                         <Shield className="w-5 h-5 fill-current" />
-                        Start Your Awareness Program
+                        Lancer votre Programme
                     </button>
                     <p className="text-slate-500 text-sm mt-4">
-                        Available for teams of all sizes. No credit card required for demo.
+                        Disponible pour les équipes de toutes tailles. Pas de carte requise pour la démo.
                     </p>
                 </div>
 

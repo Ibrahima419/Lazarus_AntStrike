@@ -162,5 +162,111 @@ export const taranisService = {
   }): Promise<{ success: boolean; data: { items: any[]; total_count: number } }> {
     const response = await apiClient.get('/taranis/assess/tags', { params });
     return response.data;
+  },
+
+  // ========================================
+  // 5. ANALYZE - REPORT ITEMS
+  // ========================================
+
+  // --- Reporting & Collaboration (New Endpoints) ---
+
+  async getReportItems(params?: {
+    search?: string;
+    completed?: boolean;
+    offset?: number;
+    limit?: number;
+  }): Promise<{ data: any[] }> {
+    const response = await apiClient.get('/taranis/analyze/report-items', { params });
+    return response.data;
+  },
+
+  async getReportItem(id: string): Promise<{ data: any }> {
+    const response = await apiClient.get(`/taranis/analyze/report-items/${id}`);
+    return response.data;
+  },
+
+  async createReportItem(data: { title: string; report_item_type_id: number }): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/analyze/report-items', data);
+    return response.data;
+  },
+
+  async updateReportItem(id: string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/analyze/report-items/${id}`, data);
+    return response.data;
+  },
+
+  async deleteReportItem(id: string): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/analyze/report-items/${id}`);
+    return response.data;
+  },
+
+  // --- Locks ---
+  async lockReportItem(id: string): Promise<{ success: boolean }> {
+    const response = await apiClient.put(`/taranis/analyze/report-items/${id}/lock`);
+    return response.data;
+  },
+
+  async unlockReportItem(id: string): Promise<{ success: boolean }> {
+    const response = await apiClient.delete(`/taranis/analyze/report-items/${id}/lock`);
+    return response.data;
+  },
+
+  async getReportItemLock(id: string): Promise<{ data: any }> {
+    const response = await apiClient.get(`/taranis/analyze/report-items/${id}/locks`);
+    return response.data;
+  },
+
+  // --- Stories / Evidence ---
+
+  async getStories(params?: any): Promise<{ data: any[] }> {
+    const response = await apiClient.get('/taranis/assess/stories', { params });
+    return response.data;
+  },
+
+  async addReportItemStories(itemId: string, storyIds: string[]): Promise<{ data: any }> {
+    const response = await apiClient.post(`/taranis/analyze/report-items/${itemId}/stories`, storyIds);
+    return response.data;
+  },
+
+  async updateReportItemAttributes(id: string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.patch(`/taranis/analyze/report-items/${id}/attributes`, data);
+    return response.data;
+  },
+
+  // ========================================
+  // 6. PUBLISH - PRODUCTS
+  // ========================================
+
+  async getProducts(params?: {
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: any[] }> {
+    const response = await apiClient.get('/taranis/publish/products', { params });
+    return response.data;
+  },
+
+  async createProduct(data: {
+    title: string;
+    product_type_id: number;
+    report_items: string[];
+  }): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/publish/products', data);
+    return response.data;
+  },
+
+  async publishProduct(id: string, publisherId: string): Promise<{ success: boolean; data: any }> {
+    const response = await apiClient.post(`/taranis/publish/products/${id}/publishers/${publisherId}`);
+    return response.data;
+  },
+
+  async renderProduct(id: string): Promise<{ data: any }> {
+    const response = await apiClient.post(`/taranis/publish/products/${id}/render`);
+    return response.data;
+  },
+
+  async getProductRender(id: string): Promise<{ data: any }> {
+    const response = await apiClient.get(`/taranis/publish/products/${id}/render`);
+    return response.data;
   }
 };

@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Users,
   Database,
-  ShieldCheck
+  ShieldCheck,
+  Boxes
 } from 'lucide-react';
 
 interface SidebarV2Props {
@@ -38,7 +39,7 @@ export function SidebarV2({
   const [localCollapsed, setLocalCollapsed] = useState(true);
 
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : localCollapsed;
-  const setCollapsed = controlledCollapsed !== undefined ? () => {} : setLocalCollapsed;
+  const setCollapsed = controlledCollapsed !== undefined ? () => { } : setLocalCollapsed;
 
   const menuItems = [
     {
@@ -68,6 +69,13 @@ export function SidebarV2({
       icon: FileText,
       badge: null,
       color: 'yellow'
+    },
+    {
+      id: 'collaboration',
+      label: 'Collaboration',
+      icon: Boxes,
+      badge: 'POC',
+      color: 'purple'
     },
     {
       id: 'administration',
@@ -157,7 +165,7 @@ export function SidebarV2({
 
                 <div className="relative z-10 flex items-center gap-3 w-full">
                   <Icon className={`w-5 h-5 ${isActive ? `text-${item.color}-400` : ''}`} />
-                  
+
                   {!isCollapsed && (
                     <>
                       <span className="font-medium">{item.label}</span>

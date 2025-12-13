@@ -10,19 +10,19 @@ export const CallToAction: React.FC = () => {
 
             <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
                 <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                    Ready to Secure Your Future?
+                    Prêt à Sécuriser Votre Avenir ?
                 </h2>
                 <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Join the elite organizations trusting AntStrike for their cyber defense.
-                    Get started today with a free threat assessment.
+                    Rejoignez les organisations d'élite qui font confiance à AntStrike pour leur cyberdéfense.
+                    Commencez aujourd'hui avec une évaluation gratuite des menaces.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button className="px-8 py-4 bg-white text-slate-900 font-bold rounded-xl shadow-lg hover:bg-slate-200 transition-colors flex items-center gap-2">
-                        Get Started Now <ArrowRight className="w-5 h-5" />
+                        Commencer Maintenant <ArrowRight className="w-5 h-5" />
                     </button>
                     <button className="px-8 py-4 bg-transparent border border-white/20 text-white font-semibold rounded-xl hover:bg-white/5 transition-colors">
-                        Contact Sales
+                        Contacter les Ventes
                     </button>
                 </div>
             </div>

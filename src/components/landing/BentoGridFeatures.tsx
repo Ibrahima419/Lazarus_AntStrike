@@ -7,10 +7,10 @@ export const BentoGridFeatures: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                        Engineered for <span className="text-blue-500">Cyber Dominance</span>
+                        Conçu pour la <span className="text-blue-500">Cyber Dominance</span>
                     </h2>
                     <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                        A complete ecosystem of defensive tools powered by our proprietary Taranis AI.
+                        Un écosystème défensif complet propulsé par notre IA propriétaire Taranis.
                     </p>
                 </div>
 
@@ -23,10 +23,10 @@ export const BentoGridFeatures: React.FC = () => {
                                 <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
                                     <Brain className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-white mb-2">Taranis AI Core</h3>
+                                <h3 className="text-2xl font-bold text-white mb-2">Cœur IA Taranis</h3>
                                 <p className="text-slate-400">
-                                    Our cognitive engine processes millions of data points per second to identify patterns invisible to human analysts.
-                                    Automated correlation, attribution, and response recommendations.
+                                    Notre moteur cognitif traite des millions de points de données par seconde pour identifier des modèles invisibles aux analystes humains.
+                                    Corrélation, attribution et recommandations de réponse automatisées.
                                 </p>
                             </div>
 
@@ -50,9 +50,9 @@ export const BentoGridFeatures: React.FC = () => {
                         <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
                             <Globe className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Global Sensors</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">Capteurs Globaux</h3>
                         <p className="text-slate-400 text-sm">
-                            Real-time telemetry from 50+ countries. Detect anomalies instantly.
+                            Télémétrie en temps réel provenant de +50 pays. Détection instantanée des anomalies.
                         </p>
                         <div className="absolute bottom-4 right-4 opacity-20 group-hover:opacity-40 transition-opacity">
                             <Globe className="w-24 h-24 text-purple-500" />
@@ -65,9 +65,9 @@ export const BentoGridFeatures: React.FC = () => {
                         <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mb-4 text-red-400">
                             <Eye className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Dark Web Watch</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">Vigie Dark Web</h3>
                         <p className="text-slate-400 text-sm">
-                            Infiltrate underground markets. Get alerted when your assets are mentioned.
+                            Infiltration des marchés souterrains. Soyez alerté dès que vos actifs sont mentionnés.
                         </p>
                     </div>
 
@@ -78,21 +78,21 @@ export const BentoGridFeatures: React.FC = () => {
                             <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 text-green-400">
                                 <Zap className="w-6 h-6" />
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-2">Automated Response</h3>
+                            <h3 className="text-xl font-bold text-white mb-2">Réponse Automatisée</h3>
                             <p className="text-slate-400">
-                                Execute playbooks in milliseconds. Block IPs, isolate hosts, and patch vulnerabilities automatically.
+                                Exécutez des playbooks en quelques millisecondes. Bloquez les IP, isolez les hôtes et patchez les vulnérabilités automatiquement.
                             </p>
                         </div>
                         <div className="hidden md:block w-1/3 pl-8">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-xs text-green-400 font-mono">
-                                    <ShieldCheck className="w-3 h-3" /> Threat Blocked
+                                    <ShieldCheck className="w-3 h-3" /> Menace Bloquée
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-green-400 font-mono">
-                                    <ShieldCheck className="w-3 h-3" /> Firewall Updated
+                                    <ShieldCheck className="w-3 h-3" /> Pare-feu Mis à jour
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-green-400 font-mono">
-                                    <ShieldCheck className="w-3 h-3" /> Admin Notified
+                                    <ShieldCheck className="w-3 h-3" /> Admin Notifié
                                 </div>
                             </div>
                         </div>

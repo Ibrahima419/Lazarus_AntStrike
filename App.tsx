@@ -22,6 +22,7 @@ import { SOCAnalystDashboardV2 } from './components/cti/dashboards-v2/SOCAnalyst
 import { ReportsPage } from './src/pages/Reports';
 import { CollectionHub } from './src/pages/CollectionHub';
 import { OSINTSourcesManager } from './src/pages/admin/OSINTSourcesManager';
+import { CollaborationWorkspace } from './src/components/cti/reporting/CollaborationWorkspace';
 
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
@@ -100,6 +101,11 @@ export default function App() {
     // SOC Analyst Dashboard V2 - ULTIMATE avec toutes les features SOC !
     if (activeView === 'soc-analyst') {
       return <SOCAnalystDashboardV2 />;
+    }
+
+    // Collaboration Workspace (POC)
+    if (activeView === 'collaboration') {
+      return <CollaborationWorkspace />;
     }
 
 

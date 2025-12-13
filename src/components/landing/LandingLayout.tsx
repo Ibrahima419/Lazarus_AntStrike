@@ -37,17 +37,17 @@ export const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
 
                         {/* Desktop Menu */}
                         <div className="hidden md:flex items-center gap-8">
-                            <a href="#features" className="text-sm text-slate-400 hover:text-white transition-colors">Features</a>
+                            <a href="#features" className="text-sm text-slate-400 hover:text-white transition-colors">Fonctionnalités</a>
                             <a href="#services" className="text-sm text-slate-400 hover:text-white transition-colors">Services</a>
-                            <a href="#about" className="text-sm text-slate-400 hover:text-white transition-colors">About</a>
+                            <a href="#about" className="text-sm text-slate-400 hover:text-white transition-colors">À Propos</a>
                             <Link
                                 to="/login"
                                 className="px-4 py-2 text-sm font-medium text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                             >
-                                Sign In
+                                Connexion
                             </Link>
                             <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all hover:scale-105">
-                                Get Demo
+                                Démo
                             </button>
                         </div>
 
@@ -65,9 +65,9 @@ export const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                 {isMenuOpen && (
                     <div className="md:hidden bg-slate-900 border-b border-white/5">
                         <div className="px-4 pt-2 pb-4 space-y-1">
-                            <a href="#features" className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-md">Features</a>
+                            <a href="#features" className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-md">Fonctionnalités</a>
                             <a href="#services" className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-md">Services</a>
-                            <Link to="/login" className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-md">Sign In</Link>
+                            <Link to="/login" className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-md">Connexion</Link>
                         </div>
                     </div>
                 )}
@@ -88,29 +88,29 @@ export const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                                 <span className="text-lg font-bold text-white">AntStrike CTI</span>
                             </div>
                             <p className="text-slate-400 max-w-sm">
-                                Next-generation Cyber Threat Intelligence platform powered by Taranis AI.
-                                Anticipate threats before they strike.
+                                Plateforme de Cyber Threat Intelligence nouvelle génération propulsée par Taranis AI.
+                                Anticipez les menaces avant qu'elles ne frappent.
                             </p>
                         </div>
                         <div>
-                            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Platform</h3>
+                            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Plateforme</h3>
                             <ul className="space-y-2">
-                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Intelligence Feeds</a></li>
+                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Flux de Renseignement</a></li>
                                 <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Taranis AI</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Integrations</a></li>
+                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Intégrations</a></li>
                             </ul>
                         </div>
                         <div>
-                            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Company</h3>
+                            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Entreprise</h3>
                             <ul className="space-y-2">
-                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">About Us</a></li>
+                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">À Propos</a></li>
                                 <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Contact</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Privacy Policy</a></li>
+                                <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Confidentialité</a></li>
                             </ul>
                         </div>
                     </div>
                     <div className="mt-12 pt-8 border-t border-white/5 text-center text-slate-500 text-sm">
-                        © {new Date().getFullYear()} AntStrike CTI. All rights reserved.
+                        © {new Date().getFullYear()} AntStrike CTI. Tous droits réservés.
                     </div>
                 </div>
             </footer>
