@@ -200,6 +200,11 @@ export const taranisService = {
     return response.data;
   },
 
+  async getReportTypes(): Promise<{ data: any[] }> {
+    const response = await apiClient.get('/taranis/analyze/report-types');
+    return response.data;
+  },
+
   // --- Locks ---
   async lockReportItem(id: string): Promise<{ success: boolean }> {
     const response = await apiClient.put(`/taranis/analyze/report-items/${id}/lock`);
@@ -228,8 +233,88 @@ export const taranisService = {
     return response.data;
   },
 
+  async getNewsItems(params?: any): Promise<{ data: any[] }> {
+    const response = await apiClient.get('/taranis/assess/news-items', { params });
+    return response.data;
+  },
+
+  async groupStories(newsItemIds: string[]): Promise<{ data: any }> {
+    const response = await apiClient.put('/taranis/assess/stories/group', newsItemIds);
+    return response.data;
+  },
+
+  async ungroupStories(newsItemIds: string[]): Promise<{ data: any }> {
+    const response = await apiClient.put('/taranis/assess/stories/ungroup', newsItemIds);
+    return response.data;
+  },
+
+  async addNewsItem(data: any): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/assess/news-items', data);
+    return response.data;
+  },
+
+  async updateNewsItem(id: string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/assess/news-items/${id}`, data);
+    return response.data;
+  },
+
+  async deleteNewsItem(id: string): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/assess/news-items/${id}`);
+    return response.data;
+  },
+
+  async updateStory(id: string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/assess/story/${id}`, data);
+    return response.data;
+  },
+
+  async deleteStory(id: string): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/assess/story/${id}`);
+    return response.data;
+  },
+
   async updateReportItemAttributes(id: string, data: any): Promise<{ data: any }> {
     const response = await apiClient.patch(`/taranis/analyze/report-items/${id}/attributes`, data);
+    return response.data;
+  },
+
+  // ========================================
+  // 8. ASSETS
+  // ========================================
+
+  async getAssets(params?: {
+    search?: string;
+    type?: string;
+    group_id?: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/assets', { params });
+    return response.data;
+  },
+
+  async getAsset(id: number | string): Promise<{ data: any }> {
+    const response = await apiClient.get(`/taranis/assets/${id}`);
+    return response.data;
+  },
+
+  async createAsset(data: {
+    title: string;
+    description?: string;
+    type: string;
+    organization_id?: number;
+  }): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/assets', data);
+    return response.data;
+  },
+
+  async updateAsset(id: number | string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/assets/${id}`, data);
+    return response.data;
+  },
+
+  async deleteAsset(id: number | string): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/assets/${id}`);
     return response.data;
   },
 

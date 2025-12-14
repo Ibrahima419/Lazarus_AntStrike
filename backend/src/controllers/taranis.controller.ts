@@ -13,18 +13,18 @@ import { logger } from '../utils/logger';
 function handleError(error: any, res: Response, context: string) {
   const status = error.response?.status || 500;
   const message = error.message || 'Unknown error';
-  
-  logger.error(`Taranis ${context}:`, { 
-    status, 
+
+  logger.error(`Taranis ${context}:`, {
+    status,
     url: error.config?.url,
-    message 
+    message
   });
-  
+
   res.status(status).json({ success: false, error: message });
 }
 
 export class TaranisController {
-  
+
   // ========================================
   // 1. AUTHENTIFICATION
   // ========================================
@@ -236,7 +236,8 @@ export class TaranisController {
 
   static async createNewsItem(req: Request, res: Response) {
     try {
-      const data = await TaranisService.createNewsItem(req.body);
+      // API spec uses POST /assess/news-items
+      const data = await TaranisService.addNewsItem(req.body);
       res.json({ success: true, data });
     } catch (error: any) {
       handleError(error, res, 'Create News Item');
@@ -1092,8 +1093,8 @@ export class TaranisController {
       const { asset_id, vulnerability_id } = req.params;
       const { solved } = req.body;
       const data = await TaranisService.updateAssetVulnerability(
-        parseInt(asset_id), 
-        vulnerability_id, 
+        parseInt(asset_id),
+        vulnerability_id,
         solved
       );
       res.json({ success: true, data });

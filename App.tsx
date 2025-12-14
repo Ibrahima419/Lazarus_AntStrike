@@ -24,6 +24,8 @@ import { CollectionHub } from './src/pages/CollectionHub';
 import { OSINTSourcesManager } from './src/pages/admin/OSINTSourcesManager';
 import { CollaborationWorkspace } from './src/components/cti/reporting/CollaborationWorkspace';
 
+import { AssetsManagement } from './src/pages/AssetsManagement';
+
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
 import { type Filters } from './components/cti/base/FilterBar';
@@ -96,6 +98,11 @@ export default function App() {
           <OSINTSourcesManager />
         </ProtectedRoute>
       );
+    }
+
+    // Assets Management
+    if (activeView === 'assets') {
+      return <AssetsManagement />;
     }
 
     // SOC Analyst Dashboard V2 - ULTIMATE avec toutes les features SOC !

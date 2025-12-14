@@ -36,9 +36,9 @@ export class TaranisService {
       logger.info('✅ Taranis token obtained');
       return this.token as string;
     } catch (error: any) {
-      logger.error('❌ Failed to get Taranis token', { 
+      logger.error('❌ Failed to get Taranis token', {
         status: error.response?.status,
-        message: error.message 
+        message: error.message
       });
       throw new Error('Taranis authentication failed');
     }
@@ -255,14 +255,7 @@ export class TaranisService {
     return (await client.get(`/assess/news-items/${itemId}`)).data;
   }
 
-  static async createNewsItem(data: {
-    title: string;
-    content: string;
-    review?: string;
-    author?: string;
-    link?: string;
-    published?: string;
-  }) {
+  static async addNewsItem(data: any) {
     const client = await this.getClient();
     return (await client.post('/assess/news-items', data)).data;
   }
@@ -477,7 +470,16 @@ export class TaranisService {
 
   static async getProductRender(productId: string) {
     const client = await this.getClient();
-    return (await client.get(`/publish/products/${productId}/render`)).data;
+    // Request binary data
+    const response = await client.get(`/publish/products/${productId}/render`, {
+      responseType: 'arraybuffer'
+    });
+
+    // Convert Buffer to Base64
+    const base64 = Buffer.from(response.data, 'binary').toString('base64');
+
+    // Return structured object expected by frontend
+    return { content_base64: base64 };
   }
 
   static async renderProduct(productId: string) {

@@ -38,6 +38,10 @@ export const DynamicAttributeEditor: React.FC<DynamicAttributeEditorProps> = ({ 
 
     // --- 3. Enum / Select ---
     if (attribute.type === 'ENUM') {
+        // Enums (often passed via 'attribute_enums' in the type definition, or sometimes directly if enriched)
+        // We fallback to a generic list if not found
+        const options = (attribute as any).attribute_enums || [];
+
         return (
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-400">{attribute.name}</label>
@@ -47,11 +51,22 @@ export const DynamicAttributeEditor: React.FC<DynamicAttributeEditorProps> = ({ 
                     onChange={(e) => onSave(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50"
                 >
-                    {/* Note: In real app, enums would come from attribute definition */}
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="CRITICAL">Critical</option>
+                    <option value="">Sélectionner...</option>
+                    {options.length > 0 ? (
+                        options.map((opt: any) => (
+                            <option key={opt.id || opt.value} value={opt.value}>
+                                {opt.description || opt.value}
+                            </option>
+                        ))
+                    ) : (
+                        /* Fallback Demo Options if no config found */
+                        <>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="CRITICAL">Critical</option>
+                        </>
+                    )}
                 </select>
             </div>
         );

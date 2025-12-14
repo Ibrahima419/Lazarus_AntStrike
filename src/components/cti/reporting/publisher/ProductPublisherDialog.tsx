@@ -11,7 +11,7 @@ interface ProductPublisherDialogProps {
 }
 
 export const ProductPublisherDialog: React.FC<ProductPublisherDialogProps> = ({ productId, productTitle, onClose, preSelectedItems }) => {
-    const { publishProduct, assembleProduct } = useReportingStore();
+    const { publishProduct, assembleProduct, exportProductToPdf } = useReportingStore();
     const [selectedPublisher, setSelectedPublisher] = useState<'email' | 'misp' | 'print'>('email');
     const [isPublishing, setIsPublishing] = useState(false);
 
@@ -55,6 +55,12 @@ L'équipe CTI AntStrike`;
             }
 
             if (targetProductId) {
+                if (selectedPublisher === 'print') {
+                    await exportProductToPdf(targetProductId);
+                    onClose();
+                    return;
+                }
+
                 // Publisher ID '1' is usually Email in our mock/Taranis default
                 // This path will be taken for MISP or other future publishers, not email anymore.
                 await publishProduct(targetProductId, '1');
@@ -114,16 +120,17 @@ L'équipe CTI AntStrike`;
                         </button>
 
                         <button
-                            disabled
-                            className="p-4 rounded-xl border border-white/5 bg-slate-950 text-slate-600 flex items-center gap-4 opacity-50 cursor-not-allowed"
+                            onClick={() => setSelectedPublisher('print')}
+                            className={`p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedPublisher === 'print' ? 'bg-amber-500/10 border-amber-500 text-amber-100' : 'bg-slate-950 border-white/5 text-slate-400 hover:border-white/10'}`}
                         >
-                            <div className="p-2 bg-slate-800 rounded-lg text-slate-500">
+                            <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400">
                                 <Printer className="w-5 h-5" />
                             </div>
                             <div className="text-left">
                                 <div className="font-semibold text-sm">Export PDF</div>
-                                <div className="text-xs opacity-70">Bientôt disponible</div>
+                                <div className="text-xs opacity-70">Télécharger le rapport compilé</div>
                             </div>
+                            {selectedPublisher === 'print' && <CheckCircle2 className="w-5 h-5 text-amber-500 ml-auto" />}
                         </button>
                     </div>
 
