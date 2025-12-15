@@ -25,6 +25,7 @@ import { OSINTSourcesManager } from './src/pages/admin/OSINTSourcesManager';
 import { CollaborationWorkspace } from './src/components/cti/reporting/CollaborationWorkspace';
 
 import { AssetsManagement } from './src/pages/AssetsManagement';
+import { UserManagement } from './src/pages/admin/UserManagement';
 
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
@@ -67,6 +68,7 @@ export default function App() {
       case 'reports': return 'Reports Center';
       case 'administration': return 'Administration';
       case 'team': return 'Team Management';
+      case 'users': return 'User Management';
       case 'assets': return 'Assets Management';
       default: return 'Dashboard';
     }
@@ -103,6 +105,15 @@ export default function App() {
     // Assets Management
     if (activeView === 'assets') {
       return <AssetsManagement />;
+    }
+
+    // User Management (Admin only)
+    if (activeView === 'users') {
+      return (
+        <ProtectedRoute requirePermission="user:create">
+          <UserManagement />
+        </ProtectedRoute>
+      );
     }
 
     // SOC Analyst Dashboard V2 - ULTIMATE avec toutes les features SOC !

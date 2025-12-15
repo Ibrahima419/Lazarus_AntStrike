@@ -41,6 +41,9 @@ import darkwebRoutes from './routes/darkweb.routes';
 import honeypotRoutes from './routes/honeypot.routes';
 import threatFeedsRoutes from './routes/threat-feeds.routes';
 import collectionRoutes from './routes/collection.routes';
+import userRoutes from './routes/user.routes'; // New User Routes
+import dashboardRoutes from './routes/dashboard.routes'; // New Dashboard Routes
+
 
 // Load environment variables
 dotenv.config();
@@ -57,7 +60,7 @@ if (process.env.SENTRY_DSN) {
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0
   });
-  
+
   app.use(Sentry.Handlers.requestHandler());
   app.use(Sentry.Handlers.tracingHandler());
 }
@@ -84,21 +87,21 @@ app.use(helmet({
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [process.env.FRONTEND_URL || 'http://localhost:3000']
   : [
-      'http://localhost:3000', 
-      'http://localhost:3001', 
-      'http://localhost:5173',
-      'http://192.168.133.1:3000',
-      'http://172.30.112.1:3000',
-      'http://172.26.32.1:3000',
-      'http://192.168.226.1:3000',
-      'http://192.168.43.248:3000'
-    ];
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
+    'http://192.168.133.1:3000',
+    'http://172.30.112.1:3000',
+    'http://172.26.32.1:3000',
+    'http://192.168.226.1:3000',
+    'http://192.168.43.248:3000'
+  ];
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
+
     // Allow configured origins
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -123,7 +126,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ===================================
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.info('HTTP Request', {
@@ -135,7 +138,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       userAgent: req.get('user-agent')
     });
   });
-  
+
   next();
 });
 
@@ -147,6 +150,8 @@ app.use('/api/auth', authRoutes);
 
 // Protected routes - require authentication
 app.use('/api/tenants', authenticate, requireAdmin, tenantRoutes);
+app.use('/api/users', authenticate, userRoutes); // User Management
+app.use('/api/dashboard', authenticate, dashboardRoutes); // Dashboard Data
 app.use('/api/threats', authenticate, threatRoutes);
 app.use('/api/alerts', authenticate, alertRoutes);
 app.use('/api/reports', authenticate, reportRoutes);
@@ -163,7 +168,7 @@ app.use('/api/stix', authenticate, stixRoutes);  // 📦 STIX 2.1 Parser & Expor
 app.use('/taxii', authenticate, taxiiRoutes);  // 📡 TAXII 2.1 Server
 app.use('/api/misp', authenticate, mispRoutes);  // 🔄 MISP Bidirectional Sync
 app.use('/api/cve', authenticate, cveRoutes);  // 🔐 CVE Enrichment (NVD + CIRCL)
-  // 📰 OSINT Feeds Auto-Import
+// 📰 OSINT Feeds Auto-Import
 app.use('/api/darkweb', authenticate, darkwebRoutes);  // 🕵️ Dark Web Monitoring
 app.use('/api/honeypots', authenticate, honeypotRoutes);  // 🍯 Honeypots Integration
 app.use('/api/threat-feeds', authenticate, threatFeedsRoutes);  // 🌐 Threat Feeds (AlienVault OTX, etc.)
@@ -198,7 +203,7 @@ app.get('/', (req: Request, res: Response) => {
       // Core
       health: '/api/health',
       auth: '/api/auth',
-      
+
       // Custom CTI Features
       threats: '/api/threats',
       alerts: '/api/alerts',
@@ -208,7 +213,7 @@ app.get('/', (req: Request, res: Response) => {
       playbooks: '/api/playbooks',
       correlation: '/api/correlation',
       metrics: '/api/metrics',
-      
+
       // Taranis AI - VRAIS ENDPOINTS 🚀
       taranis: {
         auth: '/api/taranis/auth/*',
@@ -224,7 +229,7 @@ app.get('/', (req: Request, res: Response) => {
         tasks: '/api/taranis/tasks/:id',
         isAlive: '/api/taranis/isalive'
       },
-      
+
       documentation: '/api/docs'
     },
     statistics: {

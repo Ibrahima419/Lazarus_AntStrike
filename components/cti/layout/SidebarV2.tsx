@@ -20,7 +20,8 @@ import {
   Users,
   Database,
   ShieldCheck,
-  Boxes
+  Boxes,
+  UserSquare
 } from 'lucide-react';
 
 interface SidebarV2Props {
@@ -83,6 +84,14 @@ export function SidebarV2({
       icon: ShieldCheck,
       badge: null,
       color: 'red',
+      adminOnly: true
+    },
+    {
+      id: 'users',
+      label: 'Utilisateurs',
+      icon: UserSquare,
+      badge: null,
+      color: 'purple',
       adminOnly: true
     },
     {

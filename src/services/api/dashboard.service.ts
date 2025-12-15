@@ -133,6 +133,16 @@ export const dashboardService = {
     return { data: { items: response.data.data || [] } };
   },
 
+
+
+  /**
+   * Récupérer les données pour le dashboard analyste (stats + trending tags)
+   */
+  async getAnalystDashboardData(): Promise<{ stats: any; trendingTags: any }> {
+    const response = await apiClient.get('/dashboard/analyst');
+    return response.data;
+  },
+
   /**
    * Calculer les analyses avancées pour le dashboard
    */
