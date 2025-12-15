@@ -495,16 +495,7 @@ git push origin feature/ma-feature
 
 ---
 
-## 📞 Support & Contact
 
-- **Documentation**: [docs.antstrike.io](https://docs.antstrike.io)
-- **API Docs**: [api.antstrike.io/docs](https://api.antstrike.io/docs)
-- **Issues**: [GitHub Issues](https://github.com/antstrike/cti-platform/issues)
-- **Community**: [Discord](https://discord.gg/antstrike)
-- **Email**: support@antstrike.io
-- **Enterprise**: enterprise@antstrike.io
-
----
 
 ## 📄 Licence
 
