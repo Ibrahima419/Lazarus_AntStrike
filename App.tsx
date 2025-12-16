@@ -4,7 +4,7 @@
  * Layout géré ici (Header + Sidebar une seule fois)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from './src/store/auth.store';
 import { useThreats } from './src/hooks/use-threats';
 import { useAlerts } from './src/hooks/use-alerts';
@@ -39,6 +39,13 @@ export default function App() {
 
   // Get user from auth store
   const { user } = useAuthStore();
+
+  // Redirect analysts to their dashboard
+  useEffect(() => {
+    if (user?.role === 'analyst' && activeView === 'soc-analyst') {
+      setActiveView('analyst');
+    }
+  }, [user?.role, activeView]);
 
   // Data from backend via React Query
   const { data: threatsData, isLoading: threatsLoading, refetch: refetchThreats } = useThreats({ limit: 100 });

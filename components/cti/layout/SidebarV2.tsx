@@ -48,7 +48,8 @@ export function SidebarV2({
       label: 'SOC Analyst',
       icon: Eye,
       badge: null,
-      color: 'cyan'
+      color: 'cyan',
+      excludedRoles: ['analyst']
     },
     {
       id: 'analyst',
@@ -120,6 +121,10 @@ export function SidebarV2({
   // Filter menu items based on user role
   const visibleMenuItems = menuItems.filter(item => {
     if (item.adminOnly && userRole !== 'admin') {
+      return false;
+    }
+    // @ts-ignore - dynamic property
+    if (item.excludedRoles && item.excludedRoles.includes(userRole)) {
       return false;
     }
     return true;
