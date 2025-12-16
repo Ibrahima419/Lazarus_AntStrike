@@ -5,6 +5,8 @@
  */
 
 import apiClient from '../../lib/api-client';
+import { TrendingClustersResponse } from '../../types/taranis.types';
+
 
 export interface DashboardMetrics {
   total_news_items: number;
@@ -126,12 +128,13 @@ export const dashboardService = {
   },
 
   /**
-   * Récupérer les clusters de menaces
+   * Récupérer les trending clusters (tags) depuis Taranis
    */
-  async getThreatClusters(): Promise<{ data: { items: ThreatCluster[] } }> {
-    const response = await apiClient.get('/taranis/dashboard/trending-clusters');
-    return { data: { items: response.data.data || [] } };
+  async getTrendingClusters(params?: { days?: number; legacy?: boolean }): Promise<TrendingClustersResponse> {
+    const response = await apiClient.get('/taranis/dashboard/trending-clusters', { params });
+    return response.data;
   },
+
 
 
 

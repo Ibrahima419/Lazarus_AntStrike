@@ -1,0 +1,157 @@
+﻿{
+    "success":  true,
+    "data":  {
+                 "items":  [
+                               {
+                                   "name":  "Location",
+                                   "size":  88,
+                                   "tags":  [
+                                                {
+                                                    "name":  "USA",
+                                                    "size":  24
+                                                },
+                                                {
+                                                    "name":  "Österreich",
+                                                    "size":  23
+                                                },
+                                                {
+                                                    "name":  "Europa",
+                                                    "size":  18
+                                                },
+                                                {
+                                                    "name":  "Ukraine",
+                                                    "size":  13
+                                                },
+                                                {
+                                                    "name":  "Deutschland",
+                                                    "size":  10
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "Organization",
+                                   "size":  54,
+                                   "tags":  [
+                                                {
+                                                    "name":  "ÖVP",
+                                                    "size":  17
+                                                },
+                                                {
+                                                    "name":  "EU",
+                                                    "size":  15
+                                                },
+                                                {
+                                                    "name":  "APA",
+                                                    "size":  9
+                                                },
+                                                {
+                                                    "name":  "Reuters",
+                                                    "size":  7
+                                                },
+                                                {
+                                                    "name":  "FPÖ",
+                                                    "size":  6
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "Product",
+                                   "size":  16,
+                                   "tags":  [
+                                                {
+                                                    "name":  "Instagram",
+                                                    "size":  4
+                                                },
+                                                {
+                                                    "name":  "Chips",
+                                                    "size":  3
+                                                },
+                                                {
+                                                    "name":  "Lebensmittel",
+                                                    "size":  3
+                                                },
+                                                {
+                                                    "name":  "Handy",
+                                                    "size":  3
+                                                },
+                                                {
+                                                    "name":  "Smartphone",
+                                                    "size":  3
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "Person",
+                                   "size":  43,
+                                   "tags":  [
+                                                {
+                                                    "name":  "Donald Trump",
+                                                    "size":  14
+                                                },
+                                                {
+                                                    "name":  "Elon Musk",
+                                                    "size":  11
+                                                },
+                                                {
+                                                    "name":  "Gerhard Karner",
+                                                    "size":  8
+                                                },
+                                                {
+                                                    "name":  "Christian Stocker",
+                                                    "size":  5
+                                                },
+                                                {
+                                                    "name":  "Wladimir Putin",
+                                                    "size":  5
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "cves",
+                                   "size":  10,
+                                   "tags":  [
+                                                {
+                                                    "name":  "CVE-2025-55182",
+                                                    "size":  3
+                                                },
+                                                {
+                                                    "name":  "CVE-2025-64446",
+                                                    "size":  3
+                                                },
+                                                {
+                                                    "name":  "CVE-2025-66478",
+                                                    "size":  2
+                                                },
+                                                {
+                                                    "name":  "CVE-2023-2649",
+                                                    "size":  1
+                                                },
+                                                {
+                                                    "name":  "CVE-2024-4367",
+                                                    "size":  1
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "registry_key_paths",
+                                   "size":  1,
+                                   "tags":  [
+                                                {
+                                                    "name":  "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                                                    "size":  1
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "UNKNOWN",
+                                   "size":  1,
+                                   "tags":  [
+                                                {
+                                                    "name":  "cve",
+                                                    "size":  1
+                                                }
+                                            ]
+                               }
+                           ]
+             }
+}

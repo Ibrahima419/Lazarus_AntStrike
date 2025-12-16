@@ -26,6 +26,7 @@ import { CollaborationWorkspace } from './src/components/cti/reporting/Collabora
 
 import { AssetsManagement } from './src/pages/AssetsManagement';
 import { UserManagement } from './src/pages/admin/UserManagement';
+import AnalystDashboard from './src/pages/AnalystDashboard';
 
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
@@ -60,6 +61,7 @@ export default function App() {
   const getViewTitle = () => {
     switch (activeView) {
       case 'soc-analyst': return 'SOC Analyst Dashboard Ultimate';
+      case 'analyst': return 'Analyst Dashboard';
       case 'collection': return 'Collection Hub';
       case 'threat-intel': return 'Threat Intelligence Hub';
       case 'executive': return 'Executive Dashboard';
@@ -114,6 +116,11 @@ export default function App() {
           <UserManagement />
         </ProtectedRoute>
       );
+    }
+
+    // Analyst Dashboard - Tag Clusters
+    if (activeView === 'analyst') {
+      return <AnalystDashboard />;
     }
 
     // SOC Analyst Dashboard V2 - ULTIMATE avec toutes les features SOC !

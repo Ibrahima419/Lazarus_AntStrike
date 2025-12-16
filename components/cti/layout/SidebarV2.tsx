@@ -51,6 +51,13 @@ export function SidebarV2({
       color: 'cyan'
     },
     {
+      id: 'analyst',
+      label: 'Analyst Dashboard',
+      icon: BarChart3,
+      badge: 'New',
+      color: 'green'
+    },
+    {
       id: 'collection',
       label: 'Collection Hub',
       icon: Database,
