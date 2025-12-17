@@ -27,6 +27,8 @@ import { CollaborationWorkspace } from './src/components/cti/reporting/Collabora
 import { AssetsManagement } from './src/pages/AssetsManagement';
 import { UserManagement } from './src/pages/admin/UserManagement';
 import AnalystDashboard from './src/pages/AnalystDashboard';
+import AssessPage from './src/pages/assess/AssessPage';
+import AnalyzePage from './src/pages/analyze/AnalyzePage';
 
 // Composants de base
 import { ThreatCard } from './components/cti/base/ThreatCard';
@@ -133,6 +135,16 @@ export default function App() {
     // SOC Analyst Dashboard V2 - ULTIMATE avec toutes les features SOC !
     if (activeView === 'soc-analyst') {
       return <SOCAnalystDashboardV2 />;
+    }
+
+    // Assess - Stories & News
+    if (activeView === 'assess') {
+      return <AssessPage />;
+    }
+
+    // Analyze - Reports
+    if (activeView === 'analyze') {
+      return <AnalyzePage />;
     }
 
     // Collaboration Workspace (POC)

@@ -11,17 +11,42 @@ interface DynamicAttributeEditorProps {
     attribute: ReportItemAttribute;
     onSave: (value: string) => void;
     isLocked?: boolean;
+    mode?: 'edit' | 'read';
 }
 
-export const DynamicAttributeEditor: React.FC<DynamicAttributeEditorProps> = ({ attribute, onSave, isLocked }) => {
+export const DynamicAttributeEditor: React.FC<DynamicAttributeEditorProps> = ({ attribute, onSave, isLocked, mode = 'edit' }) => {
 
-    // --- 1. Rich Text Editor (TipTap) ---
+    // Force read mode if locked, or if explicitly in read mode
+    const effectiveMode = isLocked ? 'read' : mode;
+
+    // --- 1. Rich Text ---
     if (attribute.type === 'RICH_TEXT') {
+        if (effectiveMode === 'read') {
+            return (
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-500 uppercase tracking-wider">{attribute.name}</label>
+                    <div
+                        className="prose prose-invert max-w-none bg-slate-900/30 p-6 rounded-xl border border-white/5"
+                        dangerouslySetInnerHTML={{ __html: attribute.value }}
+                    />
+                </div>
+            );
+        }
         return <RichTextEditor initialValue={attribute.value} onSave={onSave} isLocked={isLocked} />;
     }
 
-    // --- 2. Simple String Input ---
+    // --- 2. String ---
     if (attribute.type === 'STRING') {
+        if (effectiveMode === 'read') {
+            return (
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 uppercase tracking-wider">{attribute.name}</label>
+                    <div className="p-3 bg-slate-900/30 rounded-lg border border-white/5 text-slate-200">
+                        {attribute.value || <span className="text-slate-600 italic">Vide</span>}
+                    </div>
+                </div>
+            );
+        }
         return (
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-400">{attribute.name}</label>
@@ -36,11 +61,21 @@ export const DynamicAttributeEditor: React.FC<DynamicAttributeEditorProps> = ({ 
         );
     }
 
-    // --- 3. Enum / Select ---
+    // --- 3. Enum ---
     if (attribute.type === 'ENUM') {
-        // Enums (often passed via 'attribute_enums' in the type definition, or sometimes directly if enriched)
-        // We fallback to a generic list if not found
         const options = (attribute as any).attribute_enums || [];
+        const label = options.find((o: any) => o.value === attribute.value)?.description || attribute.value;
+
+        if (effectiveMode === 'read') {
+            return (
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 uppercase tracking-wider">{attribute.name}</label>
+                    <div className="p-3 bg-slate-900/30 rounded-lg border border-white/5 text-slate-200">
+                        {label || <span className="text-slate-600 italic">Non défini</span>}
+                    </div>
+                </div>
+            );
+        }
 
         return (
             <div className="space-y-2">
@@ -100,7 +135,6 @@ const RichTextEditor = ({ initialValue, onSave, isLocked }: { initialValue: stri
         if (editor && initialValue !== editor.getHTML()) {
             // Avoid loop if content matches
             // editor.commands.setContent(initialValue); 
-            // Logic complex here for real-time collab, skipping for POC
         }
         editor?.setEditable(!isLocked);
     }, [isLocked, editor]);

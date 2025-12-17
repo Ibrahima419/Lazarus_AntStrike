@@ -12,7 +12,9 @@ import {
     Lock,
     CheckCircle2,
     Square,
-    CheckSquare
+    CheckSquare,
+    Eye,
+    PenTool
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -57,12 +59,25 @@ export const CollaborationWorkspace = () => {
     const [newProductId, setNewProductId] = useState<string | null>(null);
     const [createdProductTitle, setCreatedProductTitle] = useState('');
 
+    // UI Mode State
+    const [viewMode, setViewMode] = useState<'edit' | 'read'>('edit');
+
     useEffect(() => {
         fetchItems();
     }, [fetchItems]);
 
     const activeItem = items.find(i => i.id === activeItemId);
     const activeLock = activeItemId ? locks[activeItemId] : null;
+
+    // Auto-switch to read mode if locked by someone else
+    useEffect(() => {
+        if (activeLock?.locked && activeLock.locked_by !== 'Me') {
+            setViewMode('read');
+        } else {
+            // Optional: Auto-switch to edit if unlocked? Maybe keep user preference.
+            // setViewMode('edit');
+        }
+    }, [activeLock]);
 
     const handleCreateItem = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -201,30 +216,53 @@ export const CollaborationWorkspace = () => {
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => toggleEvidenceDrawer(!isEvidenceDrawerOpen)}
-                                    className={cn(
-                                        "p-2 rounded-lg transition-colors flex items-center gap-2 text-sm",
-                                        isEvidenceDrawerOpen ? "bg-purple-500/20 text-purple-300" : "hover:bg-white/5 text-slate-400"
-                                    )}
-                                >
-                                    <Database className="w-4 h-4" />
-                                    Preuves
-                                </button>
-                                <div className="w-px h-6 bg-white/10 mx-2" />
-                                <button
-                                    onClick={() => {
-                                        if (!draftProduct.includes(activeItem.id)) {
-                                            toggleProductSelection(activeItem.id);
-                                        }
-                                        setShowProductBuilder(true);
-                                    }}
-                                    className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-blue-400 transition-colors"
-                                    title="Publier / Partager cet item"
-                                >
-                                    <Share2 className="w-4 h-4" />
-                                </button>
+                            <div className="flex items-center gap-4">
+                                {/* Toggle View/Edit */}
+                                <div className="flex bg-slate-950 rounded-lg p-1 border border-white/10">
+                                    <button
+                                        onClick={() => setViewMode('read')}
+                                        className={cn("p-1.5 rounded-md transition-colors", viewMode === 'read' ? "bg-slate-800 text-white" : "text-slate-500 hover:text-slate-400")}
+                                        title="Mode Lecture"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('edit')}
+                                        disabled={activeLock?.locked && activeLock?.locked_by !== 'Me'}
+                                        className={cn("p-1.5 rounded-md transition-colors", viewMode === 'edit' ? "bg-blue-600/20 text-blue-400" : "text-slate-500 hover:text-slate-400", (activeLock?.locked && activeLock?.locked_by !== 'Me') && "opacity-50 cursor-not-allowed")}
+                                        title="Mode Édition"
+                                    >
+                                        <PenTool className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <div className="w-px h-6 bg-white/10" />
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => toggleEvidenceDrawer(!isEvidenceDrawerOpen)}
+                                        className={cn(
+                                            "p-2 rounded-lg transition-colors flex items-center gap-2 text-sm",
+                                            isEvidenceDrawerOpen ? "bg-purple-500/20 text-purple-300" : "hover:bg-white/5 text-slate-400"
+                                        )}
+                                    >
+                                        <Database className="w-4 h-4" />
+                                        Preuves
+                                    </button>
+                                    <div className="w-px h-6 bg-white/10 mx-2" />
+                                    <button
+                                        onClick={() => {
+                                            if (!draftProduct.includes(activeItem.id)) {
+                                                toggleProductSelection(activeItem.id);
+                                            }
+                                            setShowProductBuilder(true);
+                                        }}
+                                        className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-blue-400 transition-colors"
+                                        title="Publier / Partager cet item"
+                                    >
+                                        <Share2 className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -258,7 +296,7 @@ export const CollaborationWorkspace = () => {
                             )}
 
                             {/* Drop Zone for new stories if empty */}
-                            {(!activeItem.stories || activeItem.stories.length === 0) && (
+                            {(!activeItem.stories || activeItem.stories.length === 0) && viewMode === 'edit' && (
                                 <div
                                     className="mb-8 border-2 border-dashed border-slate-800 rounded-xl p-6 text-center text-slate-500 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all"
                                     onDragOver={(e) => e.preventDefault()}
@@ -280,6 +318,7 @@ export const CollaborationWorkspace = () => {
                                         attribute={attr}
                                         onSave={(val) => handleEditorSave(attr, val)}
                                         isLocked={activeLock?.locked && activeLock?.locked_by !== 'Me'}
+                                        mode={viewMode}
                                     />
                                 ))}
 
@@ -296,6 +335,7 @@ export const CollaborationWorkspace = () => {
                                             <DynamicAttributeEditor
                                                 attribute={{ id: 99, key: 'demo', name: 'Demo', type: 'RICH_TEXT', value: '<p>Ecrivez votre analyse ici (Démo)...</p>' }}
                                                 onSave={(val) => { toast.success("Analyse sauvegardée (Locale uniquement)") }}
+                                                mode={viewMode}
                                             />
                                         </div>
                                     </div>

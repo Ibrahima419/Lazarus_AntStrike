@@ -423,14 +423,47 @@ export class TaranisService {
   // 5.3 ANALYZE - REPORT TYPES
   // ========================================
 
+  // ========================================
+  // 5.3 ANALYZE - REPORT TYPES
+  // ========================================
+
   static async getReportTypes() {
     const client = await this.getClient();
     return (await client.get('/analyze/report-types')).data;
   }
 
   // ========================================
-  // 6. PUBLISH - PRODUCTS
+  // 5.4 CONFIG - REPORT ITEM TYPES
   // ========================================
+
+  static async getReportItemTypesConfig(params?: { search?: string }) {
+    const client = await this.getClient();
+    return (await client.get('/config/report-item-types', { params })).data;
+  }
+
+  static async createReportItemType(data: any) {
+    const client = await this.getClient();
+    return (await client.post('/config/report-item-types', data)).data;
+  }
+
+  static async updateReportItemType(typeId: number, data: any) {
+    const client = await this.getClient();
+    return (await client.put(`/config/report-item-types/${typeId}`, data)).data;
+  }
+
+  static async deleteReportItemType(typeId: number) {
+    const client = await this.getClient();
+    return (await client.delete(`/config/report-item-types/${typeId}`)).data;
+  }
+
+  // ========================================
+  // 6. PUBLISH - PRODUCTS & PRESENTERS
+  // ========================================
+
+  static async getPresenters() {
+    const client = await this.getClient();
+    return (await client.get('/config/presenters')).data;
+  }
 
   static async getProducts(params?: {
     search?: string;
@@ -495,6 +528,89 @@ export class TaranisService {
   static async getProductTypes() {
     const client = await this.getClient();
     return (await client.get('/publish/product-types')).data;
+  }
+
+  // ========================================
+  // 6.1 CONFIG - PRODUCT TYPES
+  // ========================================
+
+  static async getProductTypesConfig(params?: { search?: string }) {
+    const client = await this.getClient();
+    return (await client.get('/config/product-types', { params })).data;
+  }
+
+  static async createProductType(data: any) {
+    const client = await this.getClient();
+    return (await client.post('/config/product-types', data)).data;
+  }
+
+  static async updateProductType(typeId: number, data: any) {
+    const client = await this.getClient();
+    return (await client.put(`/config/product-types/${typeId}`, data)).data;
+  }
+
+  static async deleteProductType(typeId: number) {
+    const client = await this.getClient();
+    return (await client.delete(`/config/product-types/${typeId}`)).data;
+  }
+
+  // ========================================
+  // 6.2 CONFIG - PUBLISHERS & PRESETS
+  // ========================================
+
+  static async getPublishers() {
+    const client = await this.getClient();
+    return (await client.get('/config/publishers')).data;
+  }
+
+  static async getPublisherPresets(params?: { search?: string }) {
+    const client = await this.getClient();
+    return (await client.get('/config/publishers-presets', { params })).data;
+  }
+
+  static async createPublisherPreset(data: any) {
+    const client = await this.getClient();
+    return (await client.post('/config/publishers-presets', data)).data;
+  }
+
+  static async updatePublisherPreset(presetId: string, data: any) {
+    const client = await this.getClient();
+    return (await client.put(`/config/publishers-presets/${presetId}`, data)).data;
+  }
+
+  // ========================================
+  // 6.3 CONFIG - TEMPLATES
+  // ========================================
+
+  static async getTemplates() {
+    const client = await this.getClient();
+    return (await client.get('/config/templates')).data;
+  }
+
+  static async saveTemplate(data: { id: string; content: string }) {
+    const client = await this.getClient();
+    return (await client.post('/config/templates', data)).data;
+  }
+
+  static async validateTemplate(data: { content: string; is_base64: boolean }) {
+    const client = await this.getClient();
+    return (await client.post('/config/templates/validate', data)).data;
+  }
+
+  static async getTemplate(templatePath: string) {
+    const client = await this.getClient();
+    // Path param might need encoding if it contains slashes, though API spec implies it's just an ID/Path
+    return (await client.get(`/config/templates/${encodeURIComponent(templatePath)}`)).data;
+  }
+
+  static async updateTemplate(templatePath: string, data: { content: string }) {
+    const client = await this.getClient();
+    return (await client.put(`/config/templates/${encodeURIComponent(templatePath)}`, data)).data;
+  }
+
+  static async deleteTemplate(templatePath: string) {
+    const client = await this.getClient();
+    return (await client.delete(`/config/templates/${encodeURIComponent(templatePath)}`)).data;
   }
 
   // ========================================

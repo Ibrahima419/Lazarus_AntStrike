@@ -21,7 +21,8 @@ import {
   Database,
   ShieldCheck,
   Boxes,
-  UserSquare
+  UserSquare,
+  FileSearch
 } from 'lucide-react';
 
 interface SidebarV2Props {
@@ -115,6 +116,20 @@ export function SidebarV2({
       icon: Database,
       badge: null,
       color: 'teal'
+    },
+    {
+      id: 'assess',
+      label: 'Assess',
+      icon: Radar,
+      badge: 'New',
+      color: 'amber'
+    },
+    {
+      id: 'analyze',
+      label: 'Analyze',
+      icon: FileSearch,
+      badge: null,
+      color: 'rose'
     }
   ];
 

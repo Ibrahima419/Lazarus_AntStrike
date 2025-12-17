@@ -110,6 +110,10 @@ router.delete('/analyze/report-items/:id/lock', authenticate, TaranisController.
 // ========================================
 
 router.get('/analyze/report-types', authenticate, TaranisController.getReportTypes);
+router.get('/config/report-item-types', authenticate, TaranisController.getReportItemTypesConfig);
+router.post('/config/report-item-types', authenticate, TaranisController.createReportItemType);
+router.put('/config/report-item-types/:id', authenticate, TaranisController.updateReportItemType);
+router.delete('/config/report-item-types/:id', authenticate, TaranisController.deleteReportItemType);
 
 // ========================================
 // 6. PUBLISH - PRODUCTS
@@ -124,6 +128,38 @@ router.get('/publish/products/:id/render', authenticate, TaranisController.getPr
 router.post('/publish/products/:id/render', authenticate, TaranisController.renderProduct);
 router.post('/publish/products/:id/publishers/:publisher_id', authenticate, TaranisController.publishProduct);
 router.get('/publish/product-types', authenticate, TaranisController.getProductTypes);
+
+// ========================================
+// 6.2 CONFIG - PRODUCT TYPES
+// ========================================
+
+router.get('/config/product-types', authenticate, TaranisController.getProductTypesConfig);
+router.post('/config/product-types', authenticate, TaranisController.createProductType);
+router.put('/config/product-types/:id', authenticate, TaranisController.updateProductType);
+router.delete('/config/product-types/:id', authenticate, TaranisController.deleteProductType);
+
+router.get('/config/presenters', authenticate, TaranisController.getPresenters);
+
+// ========================================
+// 6.3 CONFIG - PUBLISHERS & PRESETS
+// ========================================
+
+router.get('/config/publishers', authenticate, TaranisController.getPublishers);
+
+router.get('/config/publishers-presets', authenticate, TaranisController.getPublisherPresets);
+router.post('/config/publishers-presets', authenticate, TaranisController.createPublisherPreset);
+router.put('/config/publishers-presets/:id', authenticate, TaranisController.updatePublisherPreset);
+
+// ========================================
+// 6.3 CONFIG - TEMPLATES
+// ========================================
+
+router.get('/config/templates', authenticate, TaranisController.getTemplates);
+router.post('/config/templates', authenticate, TaranisController.saveTemplate);
+router.post('/config/templates/validate', authenticate, TaranisController.validateTemplate);
+router.get('/config/templates/:path', authenticate, TaranisController.getTemplate);
+router.put('/config/templates/:path', authenticate, TaranisController.updateTemplate);
+router.delete('/config/templates/:path', authenticate, TaranisController.deleteTemplate);
 
 // ========================================
 // 7. CONFIG - USERS & ROLES

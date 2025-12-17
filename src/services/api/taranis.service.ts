@@ -5,6 +5,48 @@
 
 import apiClient from '../../lib/api-client';
 
+export interface Story {
+  id: string;
+  title: string;
+  summary: string;
+  created: string;
+  updated: string;
+  important: boolean;
+  read: boolean;
+  relevance: number;
+  news_items: NewsItem[];
+  tags: any[];
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  source: string;
+  author: string;
+  published: string;
+  updated: string;
+  // Expanded fields if available, otherwise frontend handles them
+}
+
+export interface ReportItem {
+  id: string;
+  title: string;
+  created: string;
+  last_updated: string;
+  completed: boolean;
+  report_item_type_id: number;
+  user_id: number;
+  stories: string[];
+}
+
+export interface ReportType {
+  id: number;
+  title: string;
+  description: string;
+}
+
+// OSINT Config Types
 export interface OSINTSourceGroup {
   id: string;
   name: string;
@@ -38,6 +80,14 @@ export interface CollectionResult {
   errors: number;
   duration: number;
   timestamp: string;
+}
+
+export interface TaranisResponse<T> {
+  success: boolean;
+  data: {
+    items: T[];
+    counts?: any;
+  } | T[]; // Sometimes it returns data directly or wrapped in items
 }
 
 export const taranisService = {
@@ -200,6 +250,11 @@ export const taranisService = {
     return response.data;
   },
 
+  async cloneReportItem(id: string): Promise<{ data: any }> {
+    const response = await apiClient.post(`/taranis/analyze/report-items/${id}/clone`);
+    return response.data;
+  },
+
   async getReportTypes(): Promise<{ data: any[] }> {
     const response = await apiClient.get('/taranis/analyze/report-types');
     return response.data;
@@ -223,7 +278,21 @@ export const taranisService = {
 
   // --- Stories / Evidence ---
 
-  async getStories(params?: any): Promise<{ data: any[] }> {
+  // --- Stories / Evidence ---
+
+  async getStories(params?: {
+    search?: string;
+    read?: boolean;
+    unread?: boolean;
+    important?: boolean;
+    cybersecurity?: boolean;
+    relevant?: boolean;
+    in_report?: boolean;
+    range?: string;
+    sort?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: any[] }> {
     const response = await apiClient.get('/taranis/assess/stories', { params });
     return response.data;
   },
@@ -233,7 +302,17 @@ export const taranisService = {
     return response.data;
   },
 
-  async getNewsItems(params?: any): Promise<{ data: any[] }> {
+  async getNewsItems(params?: {
+    search?: string;
+    read?: boolean;
+    important?: boolean;
+    relevant?: boolean;
+    in_analyze?: boolean;
+    range?: string;
+    sort?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: any[] }> {
     const response = await apiClient.get('/taranis/assess/news-items', { params });
     return response.data;
   },
@@ -322,6 +401,15 @@ export const taranisService = {
   // 6. PUBLISH - PRODUCTS
   // ========================================
 
+  // ========================================
+  // 6. PUBLISH - PRODUCTS & PRESENTERS
+  // ========================================
+
+  async getPresenters(): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/config/presenters');
+    return response.data;
+  },
+
   async getProducts(params?: {
     search?: string;
     limit?: number;
@@ -352,6 +440,112 @@ export const taranisService = {
 
   async getProductRender(id: string): Promise<{ data: any }> {
     const response = await apiClient.get(`/taranis/publish/products/${id}/render`);
+    return response.data;
+  },
+
+  // ========================================
+  // 5.4 CONFIG - REPORT ITEM TYPES
+  // ========================================
+
+  async getReportItemTypesConfig(params?: { search?: string }): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/config/report-item-types', { params });
+    return response.data;
+  },
+
+  async createReportItemType(data: any): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/config/report-item-types', data);
+    return response.data;
+  },
+
+  async updateReportItemType(id: number, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/config/report-item-types/${id}`, data);
+    return response.data;
+  },
+
+  async deleteReportItemType(id: number): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/config/report-item-types/${id}`);
+    return response.data;
+  },
+
+  // ========================================
+  // 6.1 CONFIG - PRODUCT TYPES
+  // ========================================
+
+  async getProductTypesConfig(params?: { search?: string }): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/config/product-types', { params });
+    return response.data;
+  },
+
+  async createProductType(data: any): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/config/product-types', data);
+    return response.data;
+  },
+
+  async updateProductType(id: string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/config/product-types/${id}`, data);
+    return response.data;
+  },
+
+  async deleteProductType(id: string): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/config/product-types/${id}`);
+    return response.data;
+  },
+
+  // ========================================
+  // 6.2 CONFIG - PUBLISHERS & PRESETS
+  // ========================================
+
+  async getPublishers(): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/config/publishers');
+    return response.data;
+  },
+
+  async getPublisherPresets(params?: { search?: string }): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/config/publishers-presets', { params });
+    return response.data;
+  },
+
+  async createPublisherPreset(data: any): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/config/publishers-presets', data);
+    return response.data;
+  },
+
+  async updatePublisherPreset(id: string, data: any): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/config/publishers-presets/${id}`, data);
+    return response.data;
+  },
+
+  // ========================================
+  // 6.3 CONFIG - TEMPLATES
+  // ========================================
+
+  async getTemplates(): Promise<{ data: any }> {
+    const response = await apiClient.get('/taranis/config/templates');
+    return response.data;
+  },
+
+  async saveTemplate(data: { id: string; content: string }): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/config/templates', data);
+    return response.data;
+  },
+
+  async validateTemplate(data: { content: string; is_base64: boolean }): Promise<{ data: any }> {
+    const response = await apiClient.post('/taranis/config/templates/validate', data);
+    return response.data;
+  },
+
+  async getTemplate(path: string): Promise<{ data: any }> {
+    const response = await apiClient.get(`/taranis/config/templates/${encodeURIComponent(path)}`);
+    return response.data;
+  },
+
+  async updateTemplate(path: string, data: { content: string }): Promise<{ data: any }> {
+    const response = await apiClient.put(`/taranis/config/templates/${encodeURIComponent(path)}`, data);
+    return response.data;
+  },
+
+  async deleteTemplate(path: string): Promise<{ data: any }> {
+    const response = await apiClient.delete(`/taranis/config/templates/${encodeURIComponent(path)}`);
     return response.data;
   }
 };

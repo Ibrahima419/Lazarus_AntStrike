@@ -354,8 +354,28 @@ export const useReportingStore = create<ReportingState>((set, get) => ({
             // 1. Déclencher le rendu (POST)
             await taranisService.renderProduct(productId);
 
-            // 2. Récupérer le résultat (GET)
-            const { data: renderData } = await taranisService.getProductRender(productId);
+            // 2. Poll pour récupérer le résultat (GET)
+            // Le backend peut prendre quelques secondes pour générer le fichier
+            const maxRetries = 10;
+            const delay = 1000; // 1 seconde
+            let renderData = null;
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    // Petite attente avant chaque tentative (y compris la première pour laisser le temps au backend)
+                    await new Promise(r => setTimeout(r, delay));
+
+                    const response = await taranisService.getProductRender(productId);
+                    if (response.data) {
+                        renderData = response.data;
+                        break; // Trouvé !
+                    }
+                } catch (e: any) {
+                    // Si 404, c'est que ce n'est pas encore prêt. On continue.
+                    // Si autre erreur (500), on arrête peut-être ? Pour l'instant on continue le polling au cas où.
+                    if (i === maxRetries - 1) throw e; // Lance l'erreur à la dernière tentative
+                }
+            }
 
             // 3. Si c'est du Base64 (Format que nous avons forcé dans le backend)
             if (renderData && renderData.content_base64) {
@@ -374,11 +394,11 @@ export const useReportingStore = create<ReportingState>((set, get) => ({
             }
             else {
                 console.error("Format reçu:", renderData);
-                toast.warning("Format de réponse inattendu (pas de base64)");
+                toast.warning("Le document n'a pas pu être généré (Timeout ou format incorrect)");
             }
         } catch (error) {
             console.error("PDF Export Error", error);
-            toast.error("Échec de l'export PDF (Vérifiez que Taranis est connecté)");
+            toast.error("Échec de l'export PDF (Vérifiez les logs backend)");
         }
     }
 }));

@@ -503,6 +503,44 @@ export class TaranisController {
     }
   }
 
+  static async getReportItemTypesConfig(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.getReportItemTypesConfig(req.query as any);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Report Item Types Config');
+    }
+  }
+
+  static async createReportItemType(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.createReportItemType(req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Create Report Item Type');
+    }
+  }
+
+  static async updateReportItemType(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await TaranisService.updateReportItemType(parseInt(id), req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Update Report Item Type');
+    }
+  }
+
+  static async deleteReportItemType(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await TaranisService.deleteReportItemType(parseInt(id));
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Delete Report Item Type');
+    }
+  }
+
   // ========================================
   // 6. PUBLISH - PRODUCTS
   // ========================================
@@ -591,6 +629,159 @@ export class TaranisController {
       res.json({ success: true, data });
     } catch (error: any) {
       handleError(error, res, 'Get Product Types');
+    }
+  }
+
+  // ========================================
+  // 6.1 CONFIG - PRODUCT TYPES
+  // ========================================
+
+  static async getProductTypesConfig(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.getProductTypesConfig(req.query as any);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Product Types Config');
+    }
+  }
+
+  static async createProductType(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.createProductType(req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Create Product Type');
+    }
+  }
+
+  static async updateProductType(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await TaranisService.updateProductType(parseInt(id), req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Update Product Type');
+    }
+  }
+
+  static async deleteProductType(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await TaranisService.deleteProductType(parseInt(id));
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Delete Product Type');
+    }
+  }
+
+  static async getPresenters(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.getPresenters();
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Presenters');
+    }
+  }
+
+  // ========================================
+  // 6.2 CONFIG - PUBLISHERS & PRESETS
+  // ========================================
+
+  static async getPublishers(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.getPublishers();
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Publishers');
+    }
+  }
+
+  static async getPublisherPresets(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.getPublisherPresets(req.query as any);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Publisher Presets');
+    }
+  }
+
+  static async createPublisherPreset(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.createPublisherPreset(req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Create Publisher Preset');
+    }
+  }
+
+  static async updatePublisherPreset(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await TaranisService.updatePublisherPreset(id, req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Update Publisher Preset');
+    }
+  }
+
+  // ========================================
+  // 6.3 CONFIG - TEMPLATES
+  // ========================================
+
+  static async getTemplates(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.getTemplates();
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Templates');
+    }
+  }
+
+  static async saveTemplate(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.saveTemplate(req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Save Template');
+    }
+  }
+
+  static async validateTemplate(req: Request, res: Response) {
+    try {
+      const data = await TaranisService.validateTemplate(req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Validate Template');
+    }
+  }
+
+  static async getTemplate(req: Request, res: Response) {
+    try {
+      const { path } = req.params; // Using 'path' param (encoded) from route
+      const data = await TaranisService.getTemplate(path);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Get Template');
+    }
+  }
+
+  static async updateTemplate(req: Request, res: Response) {
+    try {
+      const { path } = req.params;
+      const data = await TaranisService.updateTemplate(path, req.body);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Update Template');
+    }
+  }
+
+  static async deleteTemplate(req: Request, res: Response) {
+    try {
+      const { path } = req.params;
+      const data = await TaranisService.deleteTemplate(path);
+      res.json({ success: true, data });
+    } catch (error: any) {
+      handleError(error, res, 'Delete Template');
     }
   }
 
