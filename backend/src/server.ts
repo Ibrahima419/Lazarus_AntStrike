@@ -102,6 +102,11 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
 
+    // Development: Allow ALL origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
     // Allow configured origins
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -141,6 +146,25 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   next();
 });
+
+// ===================================
+// Rate Limiting
+// ===================================
+import { rateLimit } from 'express-rate-limit';
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: {
+    status: 429,
+    message: 'Too many requests, please try again later.'
+  }
+});
+
+// Apply rate limiting to all API routes
+app.use('/api', apiLimiter);
 
 // ===================================
 // API Routes

@@ -13,7 +13,7 @@ export const LandingPage: React.FC = () => {
         <LandingLayout>
             <HeroSection />
             <PartnersTicker />
-            <BentoGridFeatures />
+            {/* <BentoGridFeatures /> */}
             <CapabilitiesSection />
             <ServicesSection />
             <HumanFirewallSection />
