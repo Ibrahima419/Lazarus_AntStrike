@@ -1,4 +1,4 @@
-import { Play, Shield, Users, Brain, Target, Award } from 'lucide-react';
+import { Play, Shield, Users, Brain, Target, Award, X } from 'lucide-react';
 import { useState } from 'react';
 
 // ==============================================================================
@@ -11,32 +11,32 @@ import { useState } from 'react';
 const TRAINING_MODULES = [
     {
         id: 1,
-        title: "Masterclass Détection Phishing",
+        title: "Sensibilisation aux Arnaques en Ligne",
         duration: "12 min",
         level: "Débutant",
-        description: "Apprenez à repérer les tentatives de phishing sophistiquées dans votre boîte mail.",
+        description: "Découvrez les différentes formes d'arnaques en ligne et apprenez à les reconnaître pour protéger vos données personnelles.",
         // Mettez le chemin de votre video ici (ex: "/videos/phishing.mp4")
-        videoUrl: "#",
+        videoUrl: "/video/Arnaque%20en%20ligne.mp4",
         // Mettez le chemin de votre thumbnail ici (ex: "/images/phishing-thumb.jpg")
-        thumbnail: "bg-gradient-to-br from-red-900/50 to-orange-900/50"
+        thumbnail: "/video/Arnaque%20en%20ligne.jpg"
     },
     {
         id: 2,
-        title: "Guide Survie Ingénierie Sociale",
+        title: "Dangers des Réseaux Sociaux",
         duration: "18 min",
         level: "Intermédiaire",
-        description: "Comprenez comment les hackers manipulent la psychologie pour obtenir un accès.",
-        videoUrl: "#",
-        thumbnail: "bg-gradient-to-br from-blue-900/50 to-cyan-900/50"
+        description: "Explorez les risques associés aux réseaux sociaux et les bonnes pratiques pour une utilisation sécurisée.",
+        videoUrl: "/video/Danger%20des%20r%C3%A9seaux%20sociaux.mp4",
+        thumbnail: "/video/Danger%20des%20r%C3%A9seaux%20sociaux.jpg"
     },
     {
         id: 3,
-        title: "Habitudes Télétravail Sécurisé",
+        title: "La Désinformation en Ligne",
         duration: "15 min",
         level: "Avancé",
-        description: "Meilleures pratiques pour sécuriser votre environnement de bureau à domicile.",
-        videoUrl: "#",
-        thumbnail: "bg-gradient-to-br from-purple-900/50 to-pink-900/50"
+        description: "Comprenez comment la désinformation se propage et comment vérifier l'information pour éviter les pièges.",
+        videoUrl: "/video/La_disinformation_en_ligne.mp4",
+        thumbnail: "/video/La_disinformation_en_ligne.jpg"
     }
 ];
 
@@ -113,18 +113,29 @@ export const HumanFirewallSection = () => {
                                 className="group relative bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)]"
                             >
                                 {/* Thumbnail Area */}
-                                <div className={`aspect-video ${module.thumbnail} relative flex items-center justify-center group-hover:scale-105 transition-transform duration-500`}>
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                                <div className="aspect-video relative flex items-center justify-center group-hover:scale-105 transition-transform duration-500" style={activeModule === module.id ? {} : {backgroundImage: `url(${module.thumbnail})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
+                                    {activeModule === module.id ? (
+                                        <>
+                                            <video src={module.videoUrl} controls className="w-full h-full object-cover" />
+                                            <div className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center cursor-pointer" onClick={() => setActiveModule(null)}>
+                                                <X className="w-4 h-4 text-white" />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
 
-                                    {/* Play Button */}
-                                    <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform cursor-pointer shadow-xl">
-                                        <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                                    </div>
+                                            {/* Play Button */}
+                                            <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform cursor-pointer shadow-xl" onClick={() => setActiveModule(module.id)}>
+                                                <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                                            </div>
 
-                                    {/* Duration Badge */}
-                                    <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur rounded text-xs text-white font-medium">
-                                        {module.duration}
-                                    </div>
+                                            {/* Duration Badge */}
+                                            <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur rounded text-xs text-white font-medium">
+                                                {module.duration}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Content Area */}
